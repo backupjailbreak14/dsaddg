@@ -1,12 +1,18 @@
 require("dotenv").config();
 
 // ----------------------
-// KEEP-ALIVE VOOR REPLIT
+// KEEP-ALIVE (Render & Replit)
 // ----------------------
 const express = require("express");
 const app = express();
+
 app.get("/", (req, res) => res.send("Bot is running."));
-app.listen(3000, () => console.log("Webserver online."));
+
+// Render gebruikt automatisch process.env.PORT
+// Replit gebruikt vaak 3000 → daarom fallback
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => console.log(`🌐 Webserver online on port ${PORT}`));
 
 // ----------------------
 // DISCORD CLIENT (v14)
@@ -45,7 +51,7 @@ client.cooldowns = new Collection();
 client.snipes = new Collection();
 
 // ----------------------------------------------------
-// Helper: restSend (zodat oude commands blijven werken)
+// Helper: restSend (oude commands blijven werken)
 // ----------------------------------------------------
 function attachRestSend(msg) {
   if (msg.restSend) return;
@@ -115,7 +121,7 @@ const pingResponses = new Map([
       name: "Glorious Shaoqi",
       content: "Do not ping the glorious s_haoqi",
       files: [
-        "https://cdn.discordapp.com/attachments/853304828386344970/1446904919880892496/image.png?ex=6935aeb7&is=69345d37&hm=cfdad40c02409e23fc540db10bd286362c6b014e96210de310640fb36707f829&"
+        "https://cdn.discordapp.com/attachments/853304828386344970/1446904919880892496/image.png"
       ]
     }
   ],
@@ -125,7 +131,7 @@ const pingResponses = new Map([
       name: "Spiderman",
       content: "do not ping spiderman",
       files: [
-        "https://media.discordapp.net/attachments/853304828386344970/1446905885388570664/image.png?ex=6935af9d&is=69345e1d&hm=a3691b6eb2ec03115ffeaf60c3e1eb24eb05966919f78032666e753ddb0c84f7&=&format=webp&quality=lossless&width=873&height=431"
+        "https://media.discordapp.net/attachments/853304828386344970/1446905885388570664/image.png"
       ]
     }
   ],
@@ -145,7 +151,7 @@ const pingResponses = new Map([
       name: "Fat Bear King",
       content: "do not ping our fat bear king",
       files: [
-        "https://media.discordapp.net/attachments/853304828386344970/1446898430675910827/content.png?ex=6935a8ab&is=6934572b&hm=1ac4a8b446ddaac76b8c4ebdf293971438c95374ab603ff7804ffe778bc46615&=&format=webp&quality=lossless&width=822&height=462"
+        "https://media.discordapp.net/attachments/853304828386344970/1446898430675910827/content.png"
       ]
     }
   ],
@@ -155,7 +161,7 @@ const pingResponses = new Map([
       name: "Darth",
       content: "real.",
       files: [
-        "https://media.discordapp.net/attachments/1123600251203358858/1187744438236229703/Screenshot_20230813_183543_Discord.jpg?ex=69357d35&is=69342bb5&hm=13cc2a927abea1f5c5f0940d7c877a428afac927176b797ca84f18b926ab1660&=&format=webp&width=409&height=535"
+        "https://media.discordapp.net/attachments/1123600251203358858/1187744438236229703/Screenshot.jpg"
       ]
     }
   ]
@@ -194,7 +200,7 @@ client.on("messageCreate", async (message) => {
 
   attachRestSend(message);
 
-  // --- Handle Ping Responses (SKIP if message is a command) ---
+  // --- Handle Ping Responses ---
   if (!message.content.startsWith(PREFIX) && message.mentions.users.size === 1) {
     const id = message.mentions.users.first().id;
 
@@ -212,7 +218,9 @@ client.on("messageCreate", async (message) => {
     return message.restSend(specialTriggers[message.content]);
   }
 
+  // -------------------------
   // COMMAND HANDLER
+  // -------------------------
   if (!message.content.startsWith(PREFIX)) return;
 
   const args = message.content.slice(PREFIX.length).trim().split(/ +/g);
@@ -279,6 +287,7 @@ client.on("ready", () => {
 
   client.user.setUsername("USSR").catch(() => {});
 });
+
 console.log("🔥 REGISTERING EVENT LOADER...");
 require("./handlers/event.js")(client);
 console.log("🔥 FINISHED REGISTERING EVENTS");
@@ -289,3 +298,4 @@ console.log("🔥 FINISHED REGISTERING EVENTS");
 client.login(BOT_TOKEN)
   .then(() => console.log(`[BOT] Logged in with prefix "${client.prefix}"`))
   .catch(err => console.error("Login failed:", err));
+
