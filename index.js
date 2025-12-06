@@ -232,15 +232,6 @@ const PermissionMap = {
   ADMINISTRATOR: PermissionsBitField.Flags.Administrator
 };
 
-// ----------------------
-// MESSAGE HANDLER
-// ----------------------
-client.on("messageCreate", async (message) => {
-  log("🔥 MESSAGE CREATE:", message.content);
-  if (message.author.bot) return;
-
-  attachRestSend(message);
-
   // PING RESPONSES
   if (!message.content.startsWith(PREFIX) && message.mentions.users.size === 1) {
     const id = message.mentions.users.first().id;
