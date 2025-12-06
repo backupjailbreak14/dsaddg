@@ -20,32 +20,51 @@ module.exports = (client) => {
 				// Change bot name (safe fail)
 				client.user.setUsername("USSR").catch(() => {});
 
-				// ==========================
-				// 🔁 REBOOT MESSAGE HANDLER
-				// ==========================
+				// ============================================
+				// 🔁 REBOOT MESSAGE HANDLER (FULLY FIXED)
+				// ============================================
 				const filePath = path.join(__dirname, "../../utils/reboot.json");
 
 				try {
-						const raw = fs.readFileSync(filePath);
-						const data = JSON.parse(raw);
+						if (fs.existsSync(filePath)) {
+								const raw = fs.readFileSync(filePath, "utf8");
 
-						if (data.channel) {
-								const channel = client.channels.cache.get(data.channel);
-
-								if (channel) {
-										channel.send("✅ **Bot rebooted and is now online again!**");
+								let data = {};
+								try {
+										data = JSON.parse(raw);
+								} catch {
+										console.log("❌ reboot.json is corrupted — resetting file.");
 								}
 
-								// Clear JSON so it doesn't repeat
-								fs.writeFileSync(filePath, JSON.stringify({ channel: null }, null, 2));
+								if (data.channel) {
+										const channel = client.channels.cache.get(data.channel);
+
+										if (channel) {
+												channel.send("✅ **Bot rebooted and is now online again!**")
+														.catch(() => {});
+										} else {
+												console.log("⚠️ Reboot channel not found in cache.");
+										}
+
+										// Reset file so message doesn’t send repeatedly
+										fs.writeFileSync(
+												filePath,
+												JSON.stringify({ channel: null }, null, 2),
+												"utf8"
+										);
+
+										console.log("🔄 Reboot recovery executed.");
+								}
+						} else {
+								console.log("ℹ️ reboot.json not found — skipping recovery.");
 						}
 				} catch (e) {
-						console.log("Reboot file not found or unreadable.");
+						console.log("⚠️ Error reading reboot.json:", e);
 				}
 
-				// ==========================
+				// ============================================
 				// 🔄 ROTATING BOT STATUS
-				// ==========================
+				// ============================================
 				setInterval(() => {
 						const status = botStatus[Math.floor(Math.random() * botStatus.length)];
 
@@ -55,5 +74,6 @@ module.exports = (client) => {
 						});
 
 				}, 5000);
+
 		});
 };

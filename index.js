@@ -232,6 +232,15 @@ const PermissionMap = {
   ADMINISTRATOR: PermissionsBitField.Flags.Administrator
 };
 
+// ----------------------
+// MESSAGE HANDLER
+// ----------------------
+client.on("messageCreate", async (message) => {
+  log("🔥 MESSAGE CREATE:", message.content);
+  if (message.author.bot) return;
+
+  attachRestSend(message);
+
   // PING RESPONSES
   if (!message.content.startsWith(PREFIX) && message.mentions.users.size === 1) {
     const id = message.mentions.users.first().id;
@@ -346,9 +355,24 @@ client.on("ready", async () => {
   }
 });
 
-log("🔥 REGISTERING EVENT LOADER...");
-require("./handlers/event.js")(client);
-log("🔥 FINISHED REGISTERING EVENTS");
+  // ----------------------
+  // EVENT LOADER (SAFE)
+  // ----------------------
+  log("🔥 REGISTERING EVENT LOADER...");
+
+  try {
+    const eventLoader = require("./handlers/event.js");
+    if (typeof eventLoader === "function") {
+      eventLoader(client);
+    } else {
+      logError("Event loader is not a function!");
+    }
+  } catch (err) {
+    logError("EVENT LOADER FAILED:", err);
+  }
+
+  log("🔥 FINISHED REGISTERING EVENTS");
+
 
 // ----------------------
 // LOGIN
