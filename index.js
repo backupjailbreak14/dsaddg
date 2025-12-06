@@ -6,12 +6,40 @@ require("dotenv").config();
 const express = require("express");
 const app = express();
 
+// Track uptime
+let botOnlineSince = null;
+
 app.get("/", (req, res) => res.send("Bot is running."));
 
-// Render gebruikt automatisch process.env.PORT
-// Replit gebruikt vaak 3000 → daarom fallback
-const PORT = process.env.PORT || 3000;
+// /status → voor Render uptime monitoring
+app.get("/status", (req, res) => {
+  if (!client || !client.user) {
+    return res.json({
+      online: false,
+      message: "Bot is not connected to Discord"
+    });
+  }
 
+  res.json({
+    online: true,
+    bot: client.user.tag,
+    uptime_ms: Date.now() - botOnlineSince,
+    uptime_readable: msToReadable(Date.now() - botOnlineSince),
+    guilds: client.guilds.cache.size,
+    users: client.users.cache.size,
+    status: client.user.presence?.status || "unknown"
+  });
+});
+
+function msToReadable(ms) {
+  const sec = Math.floor(ms / 1000);
+  const m = Math.floor(sec / 60);
+  const h = Math.floor(m / 60);
+  const d = Math.floor(h / 24);
+  return `${d}d ${h % 24}h ${m % 60}m ${sec % 60}s`;
+}
+
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`🌐 Webserver online on port ${PORT}`));
 
 // ----------------------
@@ -31,7 +59,6 @@ const path = require("path");
 const BOT_TOKEN = process.env.BOT_TOKEN;
 const PREFIX = process.env.PREFIX || ".";
 
-// Client + intents
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
@@ -51,7 +78,7 @@ client.cooldowns = new Collection();
 client.snipes = new Collection();
 
 // ----------------------------------------------------
-// Helper: restSend (oude commands blijven werken)
+// restSend helper
 // ----------------------------------------------------
 function attachRestSend(msg) {
   if (msg.restSend) return;
@@ -77,9 +104,8 @@ function loadCommands(dir) {
     else if (entry.isFile() && entry.name.endsWith(".js")) {
       try {
         const cmd = require(full);
-
         if (!cmd.name || typeof cmd.run !== "function") {
-          console.log(`❌ Ongeldige command: ${full}`);
+          console.log(`❌ Invalid command: ${full}`);
           continue;
         }
 
@@ -120,9 +146,7 @@ const pingResponses = new Map([
     {
       name: "Glorious Shaoqi",
       content: "Do not ping the glorious s_haoqi",
-      files: [
-        "https://cdn.discordapp.com/attachments/853304828386344970/1446904919880892496/image.png"
-      ]
+      files: ["https://cdn.discordapp.com/attachments/.../image.png"]
     }
   ],
   [
@@ -130,9 +154,7 @@ const pingResponses = new Map([
     {
       name: "Spiderman",
       content: "do not ping spiderman",
-      files: [
-        "https://media.discordapp.net/attachments/853304828386344970/1446905885388570664/image.png"
-      ]
+      files: ["https://media.discordapp.net/.../image.png"]
     }
   ],
   [
@@ -140,9 +162,7 @@ const pingResponses = new Map([
     {
       name: "The Premier",
       content: "Do not ping the Premier",
-      files: [
-        "https://cdn.discordapp.com/attachments/1062445517990273095/1083093499886436362/GettyImages-541320861-1024x683.png"
-      ]
+      files: ["https://cdn.discordapp.com/.../image.png"]
     }
   ],
   [
@@ -150,9 +170,7 @@ const pingResponses = new Map([
     {
       name: "Fat Bear King",
       content: "do not ping our fat bear king",
-      files: [
-        "https://media.discordapp.net/attachments/853304828386344970/1446898430675910827/content.png"
-      ]
+      files: ["https://media.discordapp.net/.../image.png"]
     }
   ],
   [
@@ -160,15 +178,13 @@ const pingResponses = new Map([
     {
       name: "Darth",
       content: "real.",
-      files: [
-        "https://media.discordapp.net/attachments/1123600251203358858/1187744438236229703/Screenshot.jpg"
-      ]
+      files: ["https://media.discordapp.net/.../image.png"]
     }
   ]
 ]);
 
 // ----------------------
-// EXTRA TRIGGERS
+// TRIGGERS
 // ----------------------
 const specialTriggers = {
   "6787he4uvaw085g6": "Happy Birthday to him 🎉",
@@ -179,7 +195,7 @@ const specialTriggers = {
 };
 
 // ----------------------
-// PERMISSION MAP
+// PERMISSIONS
 // ----------------------
 const PermissionMap = {
   BAN_MEMBERS: PermissionsBitField.Flags.BanMembers,
@@ -195,12 +211,12 @@ const PermissionMap = {
 // MESSAGE HANDLER
 // ----------------------
 client.on("messageCreate", async (message) => {
-  console.log("🔥 MESSAGE CREATE FIRED:", message.content);
+  console.log("🔥 MESSAGE CREATE:", message.content);
   if (message.author.bot) return;
 
   attachRestSend(message);
 
-  // --- Handle Ping Responses ---
+  // PING RESPONSES
   if (!message.content.startsWith(PREFIX) && message.mentions.users.size === 1) {
     const id = message.mentions.users.first().id;
 
@@ -213,14 +229,12 @@ client.on("messageCreate", async (message) => {
     }
   }
 
-  // --- Handle Special Triggers ---
+  // TRIGGERS
   if (specialTriggers[message.content]) {
     return message.restSend(specialTriggers[message.content]);
   }
 
-  // -------------------------
-  // COMMAND HANDLER
-  // -------------------------
+  // COMMANDS
   if (!message.content.startsWith(PREFIX)) return;
 
   const args = message.content.slice(PREFIX.length).trim().split(/ +/g);
@@ -233,7 +247,7 @@ client.on("messageCreate", async (message) => {
 
   if (!cmd) return;
 
-  // PERMISSIONS
+  // PERMISSION CHECK
   if (cmd.permissions && Array.isArray(cmd.permissions)) {
     const needed = cmd.permissions.map(p => PermissionMap[p]).filter(Boolean);
     if (needed.length && !message.member.permissions.has(needed)) {
@@ -256,7 +270,7 @@ client.on("messageCreate", async (message) => {
     client.cooldowns.set(key, now);
   }
 
-  // RUN COMMAND
+  // EXECUTE COMMAND
   try {
     await cmd.run(client, message, args);
   } catch (err) {
@@ -269,6 +283,8 @@ client.on("messageCreate", async (message) => {
 // READY EVENT
 // ----------------------
 client.on("ready", () => {
+  botOnlineSince = Date.now(); // ← uptime start
+
   console.log(`TOKEN IS LOADED & BOT IS READY: ${client.user.tag}`);
 
   const statuses = [
@@ -298,4 +314,3 @@ console.log("🔥 FINISHED REGISTERING EVENTS");
 client.login(BOT_TOKEN)
   .then(() => console.log(`[BOT] Logged in with prefix "${client.prefix}"`))
   .catch(err => console.error("Login failed:", err));
-
