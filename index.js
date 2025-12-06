@@ -259,7 +259,7 @@ client.on("messageCreate", async (message) => {
     return message.restSend(specialTriggers[message.content]);
   }
 
-  // COMMANDS
+  // COMMAND HANDLER
   if (!message.content.startsWith(PREFIX)) return;
 
   const args = message.content.slice(PREFIX.length).trim().split(/ +/g);
@@ -341,11 +341,12 @@ client.on("ready", async () => {
 
       if (data.channelId) {
         const ch = client.channels.cache.get(data.channelId);
-        if (ch && ch.isTextBased()) {
+
+        if (ch && ch.send) {
           await ch.send("✅ Bot rebooted and is back online.");
         }
-        // reset so het bericht niet elke keer komt
-        data.channelId = null;
+
+        data.channelId = null; // prevent repeat messages
         fs.writeFileSync(rebootFile, JSON.stringify(data, null, 2), "utf8");
       }
     }
