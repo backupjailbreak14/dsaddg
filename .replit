@@ -1,0 +1,16 @@
+entrypoint = "index.js"
+run = "npm start"
+modules = ["nodejs-20"]
+
+[env]
+NODE_VERSION = "18"
+
+[interpreter]
+package = "nodejs-18_x"
+
+[agent]
+expertMode = true
+
+[[ports]]
+localPort = 3000
+externalPort = 3000
