@@ -12,7 +12,7 @@ module.exports = {
 
 				await message.channel.send("🔄 Rebooting bot...");
 
-				// Save reboot channel under the correct key: "channel"
+				// Store the channel in the correct field
 				const data = { channel: message.channel.id };
 
 				fs.writeFileSync(
@@ -21,7 +21,13 @@ module.exports = {
 						"utf8"
 				);
 
-				// Wait a moment and reboot
-				setTimeout(() => process.exit(0), 500);
+				// ================================
+				// 🔥 REPLIT-SAFE RESTART
+				// ================================
+				// No force-crash → avoids .git-backup spam
+				console.log("🔄 Replit-safe restart initiated...");
+
+				process.exitCode = 0; // Clean exit flag
+				return process.exit(); // Safe shutdown for Replit
 		}
 };
