@@ -1,17 +1,30 @@
 require("dotenv").config();
 
 // ----------------------
+// TIMESTAMPED LOGGING
+// ----------------------
+function ts() {
+  return new Date().toISOString().replace("T", " ").split(".")[0];
+}
+function log(...args) {
+  console.log(`[${ts()}]`, ...args);
+}
+function logError(...args) {
+  console.error(`[${ts()}]`, ...args);
+}
+
+// ----------------------
 // KEEP-ALIVE (Render & Replit)
 // ----------------------
 const express = require("express");
 const app = express();
 
-// Track uptime
+// uptime tracking
 let botOnlineSince = null;
 
 app.get("/", (req, res) => res.send("Bot is running."));
 
-// /status → voor Render uptime monitoring
+// /status → JSON status + uptime
 app.get("/status", (req, res) => {
   if (!client || !client.user) {
     return res.json({
@@ -20,11 +33,13 @@ app.get("/status", (req, res) => {
     });
   }
 
+  const uptimeMs = Date.now() - botOnlineSince;
+
   res.json({
     online: true,
     bot: client.user.tag,
-    uptime_ms: Date.now() - botOnlineSince,
-    uptime_readable: msToReadable(Date.now() - botOnlineSince),
+    uptime_ms: uptimeMs,
+    uptime_readable: msToReadable(uptimeMs),
     guilds: client.guilds.cache.size,
     users: client.users.cache.size,
     status: client.user.presence?.status || "unknown"
@@ -40,7 +55,7 @@ function msToReadable(ms) {
 }
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`🌐 Webserver online on port ${PORT}`));
+app.listen(PORT, () => log(`🌐 Webserver online on port ${PORT}`));
 
 // ----------------------
 // DISCORD CLIENT (v14)
@@ -105,20 +120,20 @@ function loadCommands(dir) {
       try {
         const cmd = require(full);
         if (!cmd.name || typeof cmd.run !== "function") {
-          console.log(`❌ Invalid command: ${full}`);
+          log(`❌ Invalid command: ${full}`);
           continue;
         }
 
         client.commands.set(cmd.name, cmd);
 
         if (Array.isArray(cmd.aliases)) {
-          cmd.aliases.forEach(a => client.aliases.set(a, cmd.name));
+          cmd.aliases.forEach((a) => client.aliases.set(a, cmd.name));
         }
 
-        console.log(`✔ Loaded command: ${cmd.name}`);
+        log(`✔ Loaded command: ${cmd.name}`);
       } catch (err) {
-        console.log(`❌ Error loading command: ${full}`);
-        console.error(err);
+        log(`❌ Error loading command: ${full}`);
+        logError(err);
       }
     }
   }
@@ -146,7 +161,9 @@ const pingResponses = new Map([
     {
       name: "Glorious Shaoqi",
       content: "Do not ping the glorious s_haoqi",
-      files: ["https://cdn.discordapp.com/attachments/.../image.png"]
+      files: [
+        "https://cdn.discordapp.com/attachments/853304828386344970/1446904919880892496/image.png"
+      ]
     }
   ],
   [
@@ -154,7 +171,9 @@ const pingResponses = new Map([
     {
       name: "Spiderman",
       content: "do not ping spiderman",
-      files: ["https://media.discordapp.net/.../image.png"]
+      files: [
+        "https://media.discordapp.net/attachments/853304828386344970/1446905885388570664/image.png"
+      ]
     }
   ],
   [
@@ -162,7 +181,9 @@ const pingResponses = new Map([
     {
       name: "The Premier",
       content: "Do not ping the Premier",
-      files: ["https://cdn.discordapp.com/.../image.png"]
+      files: [
+        "https://cdn.discordapp.com/attachments/1062445517990273095/1083093499886436362/GettyImages-541320861-1024x683.png"
+      ]
     }
   ],
   [
@@ -170,7 +191,9 @@ const pingResponses = new Map([
     {
       name: "Fat Bear King",
       content: "do not ping our fat bear king",
-      files: ["https://media.discordapp.net/.../image.png"]
+      files: [
+        "https://media.discordapp.net/attachments/853304828386344970/1446898430675910827/content.png"
+      ]
     }
   ],
   [
@@ -178,7 +201,9 @@ const pingResponses = new Map([
     {
       name: "Darth",
       content: "real.",
-      files: ["https://media.discordapp.net/.../image.png"]
+      files: [
+        "https://media.discordapp.net/attachments/1123600251203358858/1187744438236229703/Screenshot.jpg"
+      ]
     }
   ]
 ]);
@@ -189,7 +214,7 @@ const pingResponses = new Map([
 const specialTriggers = {
   "6787he4uvaw085g6": "Happy Birthday to him 🎉",
   "hesywg22zj2zbuuej": "Happy Birthday boss <@704331555853697074> 🎉",
-  "test": "do not test me.",
+  test: "do not test me.",
   "<@846438881485389855>": "<@846438881485389855> get pinged",
   "<@332431665005854720>": "🇷🇴"
 };
@@ -211,7 +236,7 @@ const PermissionMap = {
 // MESSAGE HANDLER
 // ----------------------
 client.on("messageCreate", async (message) => {
-  console.log("🔥 MESSAGE CREATE:", message.content);
+  log("🔥 MESSAGE CREATE:", message.content);
   if (message.author.bot) return;
 
   attachRestSend(message);
@@ -249,9 +274,11 @@ client.on("messageCreate", async (message) => {
 
   // PERMISSION CHECK
   if (cmd.permissions && Array.isArray(cmd.permissions)) {
-    const needed = cmd.permissions.map(p => PermissionMap[p]).filter(Boolean);
+    const needed = cmd.permissions.map((p) => PermissionMap[p]).filter(Boolean);
     if (needed.length && !message.member.permissions.has(needed)) {
-      return message.restSend(`❌ You need **${cmd.permissions.join(", ")}** to use this command.`);
+      return message.restSend(
+        `❌ You need **${cmd.permissions.join(", ")}** to use this command.`
+      );
     }
   }
 
@@ -265,7 +292,9 @@ client.on("messageCreate", async (message) => {
     const diff = now - last;
     if (diff < timeout) {
       const sec = Math.ceil((timeout - diff) / 1000);
-      return message.restSend(`⏳ Please wait **${sec}s** before using \`${cmd.name}\` again.`);
+      return message.restSend(
+        `⏳ Please wait **${sec}s** before using \`${cmd.name}\` again.`
+      );
     }
     client.cooldowns.set(key, now);
   }
@@ -274,18 +303,17 @@ client.on("messageCreate", async (message) => {
   try {
     await cmd.run(client, message, args);
   } catch (err) {
-    console.error("❌ Command error:", err);
+    logError("❌ Command error:", err);
     message.restSend("⚠️ An error occurred running that command.");
   }
 });
 
 // ----------------------
-// READY EVENT
+// READY EVENT + REBOOT RECOVERY
 // ----------------------
-client.on("ready", () => {
-  botOnlineSince = Date.now(); // ← uptime start
-
-  console.log(`TOKEN IS LOADED & BOT IS READY: ${client.user.tag}`);
+client.on("ready", async () => {
+  botOnlineSince = Date.now();
+  log(`TOKEN IS LOADED & BOT IS READY: ${client.user.tag}`);
 
   const statuses = [
     "watching bear king plan raids",
@@ -302,15 +330,38 @@ client.on("ready", () => {
   }, 5000);
 
   client.user.setUsername("USSR").catch(() => {});
+
+  // ---- AUTO RESTART RECOVERY ----
+  const rebootFile = path.join(__dirname, "utils", "reboot.json");
+
+  try {
+    if (fs.existsSync(rebootFile)) {
+      const raw = fs.readFileSync(rebootFile, "utf8");
+      const data = JSON.parse(raw || "{}");
+
+      if (data.channelId) {
+        const ch = client.channels.cache.get(data.channelId);
+        if (ch && ch.isTextBased()) {
+          await ch.send("✅ Bot rebooted and is back online.");
+        }
+        // reset so het bericht niet elke keer komt
+        data.channelId = null;
+        fs.writeFileSync(rebootFile, JSON.stringify(data, null, 2), "utf8");
+      }
+    }
+  } catch (err) {
+    logError("Reboot recovery error:", err);
+  }
 });
 
-console.log("🔥 REGISTERING EVENT LOADER...");
+log("🔥 REGISTERING EVENT LOADER...");
 require("./handlers/event.js")(client);
-console.log("🔥 FINISHED REGISTERING EVENTS");
+log("🔥 FINISHED REGISTERING EVENTS");
 
 // ----------------------
 // LOGIN
 // ----------------------
-client.login(BOT_TOKEN)
-  .then(() => console.log(`[BOT] Logged in with prefix "${client.prefix}"`))
-  .catch(err => console.error("Login failed:", err));
+client
+  .login(BOT_TOKEN)
+  .then(() => log(`[BOT] Logged in with prefix "${client.prefix}"`))
+  .catch((err) => logError("Login failed:", err));
