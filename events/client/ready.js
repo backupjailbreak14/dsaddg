@@ -12,8 +12,8 @@ module.exports = (client) => {
 				".help"
 		];
 
-		// ⚠️ DISCORD.JS v14/v15 → 'clientReady'
-		client.on("clientReady", () => {
+		// ✔️ Discord.js v14/v15 = 'ready'
+		client.on("ready", async () => {
 
 				console.log(`Hello ${client.user.username} is now online!`);
 
@@ -21,7 +21,7 @@ module.exports = (client) => {
 				client.user.setUsername("USSR").catch(() => {});
 
 				// ============================================
-				// 🔁 REBOOT MESSAGE HANDLER (FULLY FIXED)
+				// 🔁 REBOOT MESSAGE HANDLER (WITH FETCH)
 				// ============================================
 				const filePath = path.join(__dirname, "../../utils/reboot.json");
 
@@ -37,16 +37,22 @@ module.exports = (client) => {
 								}
 
 								if (data.channel) {
-										const channel = client.channels.cache.get(data.channel);
+										let channel = null;
 
-										if (channel) {
-												channel.send("✅ **Bot rebooted and is now online again!**")
-														.catch(() => {});
-										} else {
-												console.log("⚠️ Reboot channel not found in cache.");
+										// Fetch channel safely
+										try {
+												channel = await client.channels.fetch(data.channel);
+										} catch {
+												console.log("⚠️ Could not fetch reboot channel.");
 										}
 
-										// Reset file so message doesn’t send repeatedly
+										if (channel) {
+												channel.send("🔁 **Bot is succesvol opnieuw opgestart!**");
+										} else {
+												console.log("⚠️ Channel not found for reboot message.");
+										}
+
+										// Reset reboot.json so message is not sent again
 										fs.writeFileSync(
 												filePath,
 												JSON.stringify({ channel: null }, null, 2),

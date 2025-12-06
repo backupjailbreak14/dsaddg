@@ -12,7 +12,8 @@ module.exports = {
 
 				await message.channel.send("🔄 Rebooting bot...");
 
-				const data = { channelId: message.channel.id };
+				// Save reboot channel under the correct key: "channel"
+				const data = { channel: message.channel.id };
 
 				fs.writeFileSync(
 						path.join(__dirname, "../../utils/reboot.json"),
@@ -20,6 +21,7 @@ module.exports = {
 						"utf8"
 				);
 
+				// Wait a moment and reboot
 				setTimeout(() => process.exit(0), 500);
 		}
 };
