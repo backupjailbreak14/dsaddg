@@ -4,39 +4,38 @@ const path = require("path");
 module.exports = (client) => {
 
 		const load = (dir) => {
-				const folderPath = path.join(__dirname, "..", "events", dir);
+				const folderPath = path.join(__dirname, dir);
 
-				console.log("➡ Loading events for:", dir);
+				console.log("➡ Loading handlers for:", dir);
 				console.log("➡ folderPath =", folderPath);
 				console.log("➡ exists =", existsSync(folderPath));
 
 				if (!existsSync(folderPath)) {
-						console.warn(`⚠️ Skipping missing events folder: ${folderPath}`);
+						console.warn(`⚠️ Skipping missing handler folder: ${folderPath}`);
 						return;
 				}
 
-				const events = readdirSync(folderPath).filter(f => f.endsWith(".js"));
+				const files = readdirSync(folderPath).filter(f => f.endsWith(".js"));
 
-				for (const file of events) {
+				for (const file of files) {
 
-						let eventName = file.split(".")[0];
-
-						// ❌ BLOCK messageCreate to prevent duplicate handler
-						if (eventName === "messageCreate") {
-								console.log("⛔ Skipping messageCreate (handled manually in index.js)");
+						// 🚫 Prevent duplicate messageCreate listener
+						// console.js contains messageCreate
+						if (file === "console.js") {
+								console.log("⛔ Skipping console.js (duplicate messageCreate listener)");
 								continue;
 						}
 
-						// Fix ready rename in Discord.js v14+
-						if (eventName === "ready") eventName = "clientReady";
-
 						const filePath = path.join(folderPath, file);
-						const evt = require(filePath);
+						const handler = require(filePath);
 
-						console.log(`✔ Loaded event: ${dir}/${eventName}`);
-						client.on(eventName, evt.bind(null, client));
+						if (typeof handler === "function") {
+								console.log(`✔ Loaded handler: ${dir}/${file}`);
+								handler(client);
+						}
 				}
 		};
 
-		["client", "guild"].forEach(load);
+		// Load handlers from this folder
+		load(".");
 };
