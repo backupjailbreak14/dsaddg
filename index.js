@@ -233,82 +233,6 @@ const PermissionMap = {
 };
 
 // ----------------------
-// MESSAGE HANDLER
-// ----------------------
-client.on("messageCreate", async (message) => {
-  log("🔥 MESSAGE CREATE:", message.content);
-  if (message.author.bot) return;
-
-  attachRestSend(message);
-
-  // PING RESPONSES
-  if (!message.content.startsWith(PREFIX) && message.mentions.users.size === 1) {
-    const id = message.mentions.users.first().id;
-
-    if (pingResponses.has(id)) {
-      const data = pingResponses.get(id);
-      return message.restSend({
-        content: data.content,
-        files: data.files
-      });
-    }
-  }
-
-  // TRIGGERS
-  if (specialTriggers[message.content]) {
-    return message.restSend(specialTriggers[message.content]);
-  }
-
-  // COMMAND HANDLER
-  if (!message.content.startsWith(PREFIX)) return;
-
-  const args = message.content.slice(PREFIX.length).trim().split(/ +/g);
-  const cmdName = args.shift()?.toLowerCase();
-  if (!cmdName) return;
-
-  let cmd =
-    client.commands.get(cmdName) ||
-    client.commands.get(client.aliases.get(cmdName));
-
-  if (!cmd) return;
-
-  // PERMISSION CHECK
-  if (cmd.permissions && Array.isArray(cmd.permissions)) {
-    const needed = cmd.permissions.map((p) => PermissionMap[p]).filter(Boolean);
-    if (needed.length && !message.member.permissions.has(needed)) {
-      return message.restSend(
-        `❌ You need **${cmd.permissions.join(", ")}** to use this command.`
-      );
-    }
-  }
-
-  // COOLDOWN
-  const now = Date.now();
-  const key = `${cmd.name}-${message.author.id}`;
-  const timeout = cmd.timeout || 0;
-
-  if (timeout > 0) {
-    const last = client.cooldowns.get(key) || 0;
-    const diff = now - last;
-    if (diff < timeout) {
-      const sec = Math.ceil((timeout - diff) / 1000);
-      return message.restSend(
-        `⏳ Please wait **${sec}s** before using \`${cmd.name}\` again.`
-      );
-    }
-    client.cooldowns.set(key, now);
-  }
-
-  // EXECUTE COMMAND
-  try {
-    await cmd.run(client, message, args);
-  } catch (err) {
-    logError("❌ Command error:", err);
-    message.restSend("⚠️ An error occurred running that command.");
-  }
-});
-
-// ----------------------
 // READY EVENT + REBOOT RECOVERY
 // ----------------------
 client.on("ready", async () => {
@@ -330,30 +254,6 @@ client.on("ready", async () => {
   }, 5000);
 
   client.user.setUsername("USSR").catch(() => {});
-
-  // ---- AUTO RESTART RECOVERY ----
-  const rebootFile = path.join(__dirname, "utils", "reboot.json");
-
-  try {
-    if (fs.existsSync(rebootFile)) {
-      const raw = fs.readFileSync(rebootFile, "utf8");
-      const data = JSON.parse(raw || "{}");
-
-      if (data.channelId) {
-        const ch = client.channels.cache.get(data.channelId);
-
-        if (ch && ch.send) {
-          await ch.send("✅ Bot rebooted and is back online.");
-        }
-
-        data.channelId = null; // prevent repeat messages
-        fs.writeFileSync(rebootFile, JSON.stringify(data, null, 2), "utf8");
-      }
-    }
-  } catch (err) {
-    logError("Reboot recovery error:", err);
-  }
-});
 
   // ----------------------
   // EVENT LOADER (SAFE)
