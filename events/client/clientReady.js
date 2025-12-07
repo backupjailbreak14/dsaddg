@@ -12,58 +12,65 @@ module.exports = (client) => {
 				".help"
 		];
 
-		// This event is triggered when the bot is fully ready (custom handler environment)
-		client.on("clientReady", async () => {
-				console.log(`[READY] ${client.user.username} is now online.`);
+		// ✔️ Discord.js v14/v15 = 'ready'
+		client.on("ready", async () => {
 
-				// Attempt to change bot username (ignore if rate limited)
+				console.log(`Hello ${client.user.username} is now online!`);
+
+				// Change bot name (safe fail)
 				client.user.setUsername("USSR").catch(() => {});
 
-				// ===============================
-				// 🔁 REBOOT RECOVERY HANDLER
-				// ===============================
+				// ============================================
+				// 🔁 REBOOT MESSAGE HANDLER (WITH FETCH)
+				// ============================================
 				const filePath = path.join(__dirname, "../../utils/reboot.json");
 
 				try {
 						if (fs.existsSync(filePath)) {
 								const raw = fs.readFileSync(filePath, "utf8");
-								const data = JSON.parse(raw);
 
-								// Check if a reboot channel was stored
+								let data = {};
+								try {
+										data = JSON.parse(raw);
+								} catch {
+										console.log("❌ reboot.json is corrupted — resetting file.");
+								}
+
 								if (data.channel) {
-										let rebootChannel = null;
+										let channel = null;
 
-										// Fetch channel — cache may be empty after reboot
+										// Fetch channel safely
 										try {
-												rebootChannel = await client.channels.fetch(data.channel);
-										} catch (err) {
-												console.log("[WARN] Failed to fetch reboot channel:", err.message);
+												channel = await client.channels.fetch(data.channel);
+										} catch {
+												console.log("⚠️ Could not fetch reboot channel.");
 										}
 
-										// Send confirmation message
-										if (rebootChannel) {
-												await rebootChannel.send("🔁 Bot has successfully restarted!");
+										if (channel) {
+												channel.send("🔁 **Bot is succesvol opnieuw opgestart!**");
 										} else {
-												console.log("[WARN] Reboot channel not found.");
+												console.log("⚠️ Channel not found for reboot message.");
 										}
 
-										// Reset JSON so it doesn't fire again
+										// Reset reboot.json so message is not sent again
 										fs.writeFileSync(
 												filePath,
 												JSON.stringify({ channel: null }, null, 2),
 												"utf8"
 										);
 
-										console.log("[INFO] Reboot recovery executed.");
+										console.log("🔄 Reboot recovery executed.");
 								}
+						} else {
+								console.log("ℹ️ reboot.json not found — skipping recovery.");
 						}
-				} catch (err) {
-						console.log("[ERROR] Failed to process reboot.json:", err);
+				} catch (e) {
+						console.log("⚠️ Error reading reboot.json:", e);
 				}
 
-				// ===============================
-				// 🔄 ROTATING STATUS
-				// ===============================
+				// ============================================
+				// 🔄 ROTATING BOT STATUS
+				// ============================================
 				setInterval(() => {
 						const status = botStatus[Math.floor(Math.random() * botStatus.length)];
 
@@ -71,6 +78,8 @@ module.exports = (client) => {
 								activities: [{ name: status, type: 0 }],
 								status: "online"
 						});
+
 				}, 5000);
+
 		});
 };
