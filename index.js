@@ -330,29 +330,6 @@ client.on("ready", async () => {
   }, 5000);
 
   client.user.setUsername("USSR").catch(() => {});
-
-  // ---- AUTO RESTART RECOVERY ----
-  const rebootFile = path.join(__dirname, "utils", "reboot.json");
-
-  try {
-    if (fs.existsSync(rebootFile)) {
-      const raw = fs.readFileSync(rebootFile, "utf8");
-      const data = JSON.parse(raw || "{}");
-
-      if (data.channelId) {
-        const ch = client.channels.cache.get(data.channelId);
-
-        if (ch && ch.send) {
-          await ch.send("✅ Bot rebooted and is back online.");
-        }
-
-        data.channelId = null; // prevent repeat messages
-        fs.writeFileSync(rebootFile, JSON.stringify(data, null, 2), "utf8");
-      }
-    }
-  } catch (err) {
-    logError("Reboot recovery error:", err);
-  }
 });
 
   // ----------------------

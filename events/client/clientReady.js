@@ -47,7 +47,7 @@ module.exports = (client) => {
 										}
 
 										if (channel) {
-												channel.send("🔁 **Bot is succesvol opnieuw opgestart!**");
+												channel.send("🔁 **Bot has sucessfully rebooted!**");
 										} else {
 												console.log("⚠️ Channel not found for reboot message.");
 										}
