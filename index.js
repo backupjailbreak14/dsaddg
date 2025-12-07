@@ -272,7 +272,7 @@ client.on("ready", async () => {
   }
 
   log("🔥 FINISHED REGISTERING EVENTS");
-
+  });
 
 // ----------------------
 // LOGIN
