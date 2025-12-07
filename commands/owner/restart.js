@@ -6,13 +6,18 @@ module.exports = {
 		category: "owner",
 
 		run: async (client, message) => {
+				// Owner check
 				if (message.author.id !== "704331555853697074") {
 						return message.channel.send("❌ You cannot use this command!");
 				}
 
+				// Prevent double execution (Render/Replit sometimes fires messageCreate twice)
+				if (client.isRebooting) return;
+				client.isRebooting = true;
+
 				await message.channel.send("🔄 Rebooting bot...");
 
-				// Store the channel in the correct field
+				// Save the reboot channel so the bot can confirm after restart
 				const data = { channel: message.channel.id };
 
 				fs.writeFileSync(
@@ -21,13 +26,10 @@ module.exports = {
 						"utf8"
 				);
 
-				// ================================
-				// 🔥 REPLIT-SAFE RESTART
-				// ================================
-				// No force-crash → avoids .git-backup spam
-				console.log("🔄 Replit-safe restart initiated...");
+				console.log("🔄 Safe restart triggered...");
 
-				process.exitCode = 0; // Clean exit flag
-				return process.exit(); // Safe shutdown for Replit
+				// Replit/Render-safe exit (no backup folder spam)
+				process.exitCode = 0;
+				return process.exit();
 		}
 };
