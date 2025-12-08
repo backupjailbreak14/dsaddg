@@ -162,7 +162,7 @@ const pingResponses = new Map([
       name: "Glorious Shaoqi",
       content: "Do not ping the glorious s_haoqi",
       files: [
-        "https://media.discordapp.net/attachments/853304828386344970/1446904919880892496/image.png?ex=6935aeb7&is=69345d37&hm=cfdad40c02409e23fc540db10bd286362c6b014e96210de310640fb36707f829&=&format=webp&quality=lossless&width=822&height=593"
+        "https://media.discordapp.net/attachments/853304828386344970/1446904919880892496/image.png?ex=693851b7&is=69370037&hm=eb5c710c507cbc1daa0d0d14bff7f17faf4048f25ccd9510f7b574c3224a439d&=&format=webp&quality=lossless&width=822&height=593"
       ]
     }
   ],
@@ -172,7 +172,7 @@ const pingResponses = new Map([
       name: "Spiderman",
       content: "do not ping spiderman",
       files: [
-        "https://media.discordapp.net/attachments/853304828386344970/1446905885388570664/image.png?ex=6935af9d&is=69345e1d&hm=a3691b6eb2ec03115ffeaf60c3e1eb24eb05966919f78032666e753ddb0c84f7&=&format=webp&quality=lossless&width=1118&height=552"
+        "https://media.discordapp.net/attachments/853304828386344970/1446905885388570664/image.png?ex=6938529d&is=6937011d&hm=78f94a74c2e82d9b839220227f2f26940b0bea71c64e9dd721c8f712b8f19471&=&format=webp&quality=lossless&width=1118&height=552"
       ]
     }
   ],
@@ -192,7 +192,7 @@ const pingResponses = new Map([
       name: "Fat Bear King",
       content: "do not ping our fat bear king",
       files: [
-        "https://media.discordapp.net/attachments/853304828386344970/1446898430675910827/content.png?ex=6935a8ab&is=6934572b&hm=1ac4a8b446ddaac76b8c4ebdf293971438c95374ab603ff7804ffe778bc46615&=&format=webp&quality=lossless&width=982&height=552"
+        "https://media.discordapp.net/attachments/853304828386344970/1446898430675910827/content.png?ex=69384bab&is=6936fa2b&hm=17872c4bf0dba448d4f42a21c07548a22f1ea9b158652c87334a7976e1216672&=&format=webp&quality=lossless&width=982&height=552"
       ]
     }
   ],
