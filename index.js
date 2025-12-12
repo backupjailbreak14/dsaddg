@@ -162,7 +162,7 @@ const pingResponses = new Map([
       name: "Glorious Shaoqi",
       content: "Do not ping the glorious s_haoqi",
       files: [
-        "https://media.discordapp.net/attachments/853304828386344970/1446904919880892496/image.png?ex=693851b7&is=69370037&hm=eb5c710c507cbc1daa0d0d14bff7f17faf4048f25ccd9510f7b574c3224a439d&=&format=webp&quality=lossless&width=822&height=593"
+        "https://raw.githubusercontent.com/backupjailbreak14/dsaddg/main/assets/images/slatoer.png"
       ]
     }
   ],
@@ -192,7 +192,7 @@ const pingResponses = new Map([
       name: "Fat Bear King",
       content: "do not ping our fat bear king",
       files: [
-        "https://media.discordapp.net/attachments/853304828386344970/1446898430675910827/content.png?ex=69384bab&is=6936fa2b&hm=17872c4bf0dba448d4f42a21c07548a22f1ea9b158652c87334a7976e1216672&=&format=webp&quality=lossless&width=982&height=552"
+        "https://raw.githubusercontent.com/backupjailbreak14/dsaddg/main/assets/images/gulag.jpg"
       ]
     }
   ],
@@ -202,7 +202,7 @@ const pingResponses = new Map([
       name: "Darth",
       content: "real.",
       files: [
-        "https://media.discordapp.net/attachments/1123600251203358858/1187744438236229703/Screenshot_20230813_183543_Discord.jpg?ex=69357d35&is=69342bb5&hm=13cc2a927abea1f5c5f0940d7c877a428afac927176b797ca84f18b926ab1660&=&format=webp&width=501&height=656"
+        "https://raw.githubusercontent.com/backupjailbreak14/dsaddg/main/assets/images/macarena.jpg"
       ]
     }
   ]
