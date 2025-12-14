@@ -73,6 +73,7 @@ const path = require("path");
 
 const BOT_TOKEN = process.env.BOT_TOKEN;
 const PREFIX = process.env.PREFIX || ".";
+const { PREFIX, OWNER_ID } = require("./config");
 
 const client = new Client({
   intents: [
@@ -243,6 +244,7 @@ client.on("messageCreate", async (message) => {
   // ---- BLACKLIST CHECK ----
   if (message.author.id !== OWNER_ID) {
     const blacklist = readBlacklist();
+
     if (blacklist[message.author.id]) {
       return message.reply(
         `⛔ You have been blacklisted from using the bot.\n**Reason:** ${blacklist[message.author.id]}`
