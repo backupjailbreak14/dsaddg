@@ -239,6 +239,17 @@ client.on("messageCreate", async (message) => {
   log("🔥 MESSAGE CREATE:", message.content);
   if (message.author.bot) return;
 
+  
+  // ---- BLACKLIST CHECK ----
+  if (message.author.id !== OWNER_ID) {
+    const blacklist = readBlacklist();
+    if (blacklist[message.author.id]) {
+      return message.reply(
+        `⛔ You have been blacklisted from using the bot.\n**Reason:** ${blacklist[message.author.id]}`
+      );
+    }
+  }
+
   attachRestSend(message);
 
   // PING RESPONSES
