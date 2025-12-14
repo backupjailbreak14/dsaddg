@@ -5,7 +5,6 @@ const { OWNER_ID } = require("../../config");
 
 const blacklistPath = path.join(__dirname, "../../data/blacklist.json");
 
-// ---------- helpers ----------
 function readBlacklist() {
   if (!fs.existsSync(blacklistPath)) return {};
   return JSON.parse(fs.readFileSync(blacklistPath, "utf8"));
@@ -15,58 +14,84 @@ function writeBlacklist(data) {
   fs.writeFileSync(blacklistPath, JSON.stringify(data, null, 2));
 }
 
-function resolveUser(message, arg) {
-  if (!arg) return null;
+function resolveUser(client, message, arg) {
   return (
     message.mentions.users.first() ||
-    message.client.users.cache.get(arg)
+    client.users.cache.get(arg) ||
+    null
   );
 }
 
-// ---------- command ----------
 module.exports = {
   name: "unblacklist",
   category: "owner",
 
-  run: async (client, message, args) => {
+  async run(client, message, args) {
     if (message.author.id !== OWNER_ID) return;
 
-    const user = resolveUser(message, args[0]);
-    if (!user) {
+    if (!args.length) {
       const embed = new EmbedBuilder()
         .setColor("Orange")
-        .setTitle("⚠️ Invalid usage")
-        .setDescription("**Usage:** `.unblacklist @user` or `.unblacklist userID`");
+        .setDescription(
+          "⚠️ **Usage:**\n```\n.unblacklist @user\n.unblacklist <userID>\n```"
+        );
 
-      return message.channel.send({ embeds: [embed] });
+      return message.reply({ embeds: [embed] });
     }
+
+    const user = resolveUser(client, message, args[0]);
+    const userId = user ? user.id : args[0];
 
     const blacklist = readBlacklist();
 
-    if (!blacklist[user.id]) {
+    if (!blacklist[userId]) {
       const embed = new EmbedBuilder()
-        .setColor("Orange")
-        .setTitle("⚠️ Not blacklisted")
-        .setDescription(`${user.tag} is not blacklisted.`);
+        .setColor("Yellow")
+        .setDescription("⚠️ **This user is not blacklisted.**");
 
-      return message.channel.send({ embeds: [embed] });
+      return message.reply({ embeds: [embed] });
     }
 
-    delete blacklist[user.id];
+    delete blacklist[userId];
     writeBlacklist(blacklist);
 
-    // Auto DM
-    try {
-      await user.send("✅ **You have been unblacklisted and can use the bot again.**");
-    } catch {}
+    // ======================
+    // AUTO DM
+    // ======================
+    if (user) {
+      try {
+        const dmEmbed = new EmbedBuilder()
+          .setColor("Green")
+          .setTitle("✅ You have been unblacklisted")
+          .setDescription("You can now use the bot again.")
+          .setTimestamp();
 
+        await user.send({ embeds: [dmEmbed] });
+      } catch {
+        // DM closed → ignore
+      }
+    }
+
+    // ======================
+    // CONFIRM EMBED
+    // ======================
     const embed = new EmbedBuilder()
       .setColor("Green")
       .setTitle("✅ User Unblacklisted")
-      .setThumbnail(user.displayAvatarURL({ dynamic: true }))
+      .setThumbnail(
+        user?.displayAvatarURL({ dynamic: true }) || null
+      )
       .addFields(
-        { name: "User", value: user.tag, inline: true },
-        { name: "ID", value: user.id, inline: true }
+        {
+          name: "User",
+          value: user ? user.tag : `Unknown user (${userId})`,
+          inline: true
+        },
+        {
+          name: "ID",
+          value: userId,
+          inline: true
+        }
       )
       .setFooter({ text: `Unblacklisted by ${message.author.tag}` })
       .setTimestamp();
