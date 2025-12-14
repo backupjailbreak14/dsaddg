@@ -1,0 +1,24 @@
+blacklist (
+  user_id TEXT PRIMARY KEY,
+  reason TEXT,
+  added_by TEXT,
+  created_at INTEGER
+)
+
+gulag (
+  user_id TEXT PRIMARY KEY,
+  roles TEXT,
+  added_at INTEGER
+)
+
+reboot (
+  channel_id TEXT,
+  message_id TEXT
+)
+
+suggestions (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id TEXT,
+  content TEXT,
+  status TEXT
+)
