@@ -5,6 +5,7 @@ const { OWNER_ID } = require("../../config");
 
 const blacklistPath = path.join(__dirname, "../../data/blacklist.json");
 
+// ---------- helpers ----------
 function readBlacklist() {
   if (!fs.existsSync(blacklistPath)) return {};
   return JSON.parse(fs.readFileSync(blacklistPath, "utf8"));
@@ -14,106 +15,87 @@ function writeBlacklist(data) {
   fs.writeFileSync(blacklistPath, JSON.stringify(data, null, 2));
 }
 
+function resolveUser(message, arg) {
+  if (!arg) return null;
+  return (
+    message.mentions.users.first() ||
+    message.client.users.cache.get(arg)
+  );
+}
+
+// ---------- command ----------
 module.exports = {
   name: "blacklist",
   category: "owner",
 
-  async run(client, message, args) {
+  run: async (client, message, args) => {
     if (message.author.id !== OWNER_ID) return;
 
     const blacklist = readBlacklist();
 
-    // ======================
-    // USAGE EMBED
-    // ======================
-    if (!args.length) {
-      const embed = new EmbedBuilder()
-        .setColor("#8b0000")
-        .setAuthor({
-          name: "USSR Blacklist",
-          iconURL: client.user.displayAvatarURL()
-        })
-        .setDescription(
-          "**Usage:**\n" +
-          "```\n.blacklist @user <reason>\n.blacklist list\n```"
-        )
-        .setFooter({ text: "Blacklist management" })
-        .setTimestamp();
-
-      return message.reply({ embeds: [embed] });
-    }
-
-    // ======================
+    // ----------------------
     // .blacklist list
-    // ======================
+    // ----------------------
     if (args[0] === "list") {
       const entries = Object.entries(blacklist);
 
-      if (!entries.length) {
+      if (entries.length === 0) {
         const embed = new EmbedBuilder()
           .setColor("Green")
-          .setDescription("✅ **The blacklist is currently empty.**")
+          .setTitle("✅ Blacklist")
+          .setDescription("Blacklist is empty.")
           .setTimestamp();
 
-        return message.reply({ embeds: [embed] });
+        return message.channel.send({ embeds: [embed] });
       }
 
-      const description = entries
+      const desc = entries
         .map(
           ([id, reason], i) =>
-            `**${i + 1}.** <@${id}>\n📝 *${reason}*`
+            `**${i + 1}.** <@${id}> (\`${id}\`)\n📝 ${reason}`
         )
         .join("\n\n");
 
       const embed = new EmbedBuilder()
         .setColor("Red")
         .setTitle("⛔ Blacklisted Users")
-        .setDescription(description)
-        .setFooter({ text: `Total blacklisted: ${entries.length}` })
+        .setDescription(desc)
+        .setFooter({ text: `Total: ${entries.length}` })
         .setTimestamp();
 
       return message.channel.send({ embeds: [embed] });
     }
 
-    // ======================
-    // .blacklist @user reason
-    // ======================
-    const user = message.mentions.users.first();
+    // ----------------------
+    // .blacklist <user|id> <reason>
+    // ----------------------
+    const user = resolveUser(message, args[0]);
+
     if (!user) {
       const embed = new EmbedBuilder()
         .setColor("Orange")
+        .setTitle("⚠️ Invalid usage")
         .setDescription(
-          "⚠️ **Invalid usage**\n```\n.blacklist @user <reason>\n```"
+          "**Usage:**\n" +
+          "`.blacklist @user <reason>`\n" +
+          "`.blacklist userID <reason>`\n" +
+          "`.blacklist list`"
         );
 
-      return message.reply({ embeds: [embed] });
+      return message.channel.send({ embeds: [embed] });
     }
 
     const reason = args.slice(1).join(" ") || "No reason provided";
     blacklist[user.id] = reason;
     writeBlacklist(blacklist);
 
-    // ======================
-    // AUTO DM (EMBED)
-    // ======================
+    // Auto DM
     try {
-      const dmEmbed = new EmbedBuilder()
-        .setColor("Red")
-        .setTitle("⛔ You have been blacklisted")
-        .setDescription(
-          "You are no longer allowed to use the bot."
-        )
-        .addFields({ name: "Reason", value: reason })
-        .setTimestamp();
+      await user.send(
+        `⛔ **You have been blacklisted from using the bot.**\n\n**Reason:** ${reason}`
+      );
+    } catch {}
 
-      await user.send({ embeds: [dmEmbed] });
-    } catch {
-      // DM closed → ignore
-    }
-
-    // ======================
-    // CONFIRM EMBED
-    // ======================
     const embed = new EmbedBuilder()
       .setColor("Red")
       .setTitle("⛔ User Blacklisted")

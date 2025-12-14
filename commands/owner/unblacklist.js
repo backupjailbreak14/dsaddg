@@ -5,6 +5,7 @@ const { OWNER_ID } = require("../../config");
 
 const blacklistPath = path.join(__dirname, "../../data/blacklist.json");
 
+// ---------- helpers ----------
 function readBlacklist() {
   if (!fs.existsSync(blacklistPath)) return {};
   return JSON.parse(fs.readFileSync(blacklistPath, "utf8"));
@@ -14,55 +15,51 @@ function writeBlacklist(data) {
   fs.writeFileSync(blacklistPath, JSON.stringify(data, null, 2));
 }
 
+function resolveUser(message, arg) {
+  if (!arg) return null;
+  return (
+    message.mentions.users.first() ||
+    message.client.users.cache.get(arg)
+  );
+}
+
+// ---------- command ----------
 module.exports = {
   name: "unblacklist",
   category: "owner",
 
-  async run(client, message) {
+  run: async (client, message, args) => {
     if (message.author.id !== OWNER_ID) return;
 
-    const user = message.mentions.users.first();
+    const user = resolveUser(message, args[0]);
     if (!user) {
       const embed = new EmbedBuilder()
         .setColor("Orange")
-        .setDescription(
-          "⚠️ **Usage:**\n```\n.unblacklist @user\n```"
-        );
+        .setTitle("⚠️ Invalid usage")
+        .setDescription("**Usage:** `.unblacklist @user` or `.unblacklist userID`");
 
-      return message.reply({ embeds: [embed] });
+      return message.channel.send({ embeds: [embed] });
     }
 
     const blacklist = readBlacklist();
 
     if (!blacklist[user.id]) {
       const embed = new EmbedBuilder()
-        .setColor("Yellow")
-        .setDescription("⚠️ **This user is not blacklisted.**");
+        .setColor("Orange")
+        .setTitle("⚠️ Not blacklisted")
+        .setDescription(`${user.tag} is not blacklisted.`);
 
-      return message.reply({ embeds: [embed] });
+      return message.channel.send({ embeds: [embed] });
     }
 
     delete blacklist[user.id];
     writeBlacklist(blacklist);
 
-    // ======================
-    // AUTO DM
-    // ======================
+    // Auto DM
     try {
-      const dmEmbed = new EmbedBuilder()
-        .setColor("Green")
-        .setTitle("✅ You have been unblacklisted")
-        .setDescription("You can now use the bot again.")
-        .setTimestamp();
+      await user.send("✅ **You have been unblacklisted and can use the bot again.**");
+    } catch {}
 
-      await user.send({ embeds: [dmEmbed] });
-    } catch {
-      // DM closed → ignore
-    }
-
-    // ======================
-    // CONFIRM EMBED
-    // ======================
     const embed = new EmbedBuilder()
       .setColor("Green")
       .setTitle("✅ User Unblacklisted")
