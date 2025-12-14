@@ -1,7 +1,7 @@
 const { EmbedBuilder } = require("discord.js");
 const fs = require("fs");
 const path = require("path");
-const { OWNER_ID } = require("../config");
+const { OWNER_ID } = require("../../config");
 
 const blacklistPath = path.join(__dirname, "../data/blacklist.json");
 
