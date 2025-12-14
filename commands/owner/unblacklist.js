@@ -1,38 +1,58 @@
+const { EmbedBuilder } = require("discord.js");
 const fs = require("fs");
 const path = require("path");
+const { OWNER_ID } = require("../config");
 
-const BLACKLIST_PATH = path.join(__dirname, "../../data/blacklist.json");
-const OWNER_ID = "704331555853697074";
+const blacklistPath = path.join(__dirname, "../data/blacklist.json");
+
+function readBlacklist() {
+  if (!fs.existsSync(blacklistPath)) return {};
+  return JSON.parse(fs.readFileSync(blacklistPath, "utf8"));
+}
+
+function writeBlacklist(data) {
+  fs.writeFileSync(blacklistPath, JSON.stringify(data, null, 2));
+}
 
 module.exports = {
   name: "unblacklist",
   category: "owner",
-  description: "Remove a user from the blacklist",
-  usage: ".unblacklist @user",
 
-  run: async (client, message, args) => {
-    if (message.author.id !== OWNER_ID) {
-      return message.reply("❌ Only the owner can use this command.");
-    }
+  run: async (client, message) => {
+    if (message.author.id !== OWNER_ID) return;
 
     const user = message.mentions.users.first();
     if (!user) {
-      return message.reply("Usage: .unblacklist @user");
+      return message.reply("Usage: `.unblacklist @user`");
     }
 
-    let blacklist = {};
-    try {
-      blacklist = JSON.parse(fs.readFileSync(BLACKLIST_PATH, "utf8"));
-    } catch {}
+    const blacklist = readBlacklist();
 
     if (!blacklist[user.id]) {
-      return message.reply("⚠️ That user is not blacklisted.");
+      return message.reply("⚠️ This user is not blacklisted.");
     }
 
     delete blacklist[user.id];
+    writeBlacklist(blacklist);
 
-    fs.writeFileSync(BLACKLIST_PATH, JSON.stringify(blacklist, null, 2));
+    // Auto DM
+    try {
+      await user.send("✅ **You have been unblacklisted and can use the bot again.**");
+    } catch {
+      // DM closed, ignore
+    }
 
-    return message.reply(`✅ **${user.tag}** has been unblacklisted.`);
+    const embed = new EmbedBuilder()
+      .setColor("Green")
+      .setTitle("✅ User Unblacklisted")
+      .setThumbnail(user.displayAvatarURL({ dynamic: true }))
+      .addFields(
+        { name: "User", value: user.tag, inline: true },
+        { name: "ID", value: user.id, inline: true }
+      )
+      .setFooter({ text: `Unblacklisted by ${message.author.tag}` })
+      .setTimestamp();
+
+    message.channel.send({ embeds: [embed] });
   }
 };

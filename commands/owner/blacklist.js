@@ -1,38 +1,88 @@
+const { EmbedBuilder } = require("discord.js");
 const fs = require("fs");
 const path = require("path");
+const { OWNER_ID } = require("../config");
 
-const BLACKLIST_PATH = path.join(__dirname, "../../data/blacklist.json");
-const OWNER_ID = "704331555853697074";
+const blacklistPath = path.join(__dirname, "../data/blacklist.json");
+
+function readBlacklist() {
+  if (!fs.existsSync(blacklistPath)) return {};
+  return JSON.parse(fs.readFileSync(blacklistPath, "utf8"));
+}
+
+function writeBlacklist(data) {
+  fs.writeFileSync(blacklistPath, JSON.stringify(data, null, 2));
+}
 
 module.exports = {
   name: "blacklist",
   category: "owner",
-  description: "Blacklist a user from using the bot",
-  usage: ".blacklist @user <reason>",
 
   run: async (client, message, args) => {
-    if (message.author.id !== OWNER_ID) {
-      return message.reply("❌ Only the owner can use this command.");
+    if (message.author.id !== OWNER_ID) return;
+
+    const blacklist = readBlacklist();
+
+    // ----------------------
+    // .blacklist list
+    // ----------------------
+    if (args[0] === "list") {
+      const entries = Object.entries(blacklist);
+
+      if (entries.length === 0) {
+        return message.reply("✅ Blacklist is empty.");
+      }
+
+      const description = entries
+        .map(
+          ([id, reason], i) =>
+            `**${i + 1}.** <@${id}>\n📝 ${reason}`
+        )
+        .join("\n\n");
+
+      const embed = new EmbedBuilder()
+        .setColor("Red")
+        .setTitle("⛔ Blacklisted Users")
+        .setDescription(description)
+        .setFooter({ text: `Total: ${entries.length}` })
+        .setTimestamp();
+
+      return message.channel.send({ embeds: [embed] });
     }
 
+    // ----------------------
+    // .blacklist @user reason
+    // ----------------------
     const user = message.mentions.users.first();
     if (!user) {
-      return message.reply("Usage: .blacklist @user <reason>");
+      return message.reply("Usage: `.blacklist @user <reason>` or `.blacklist list`");
     }
 
     const reason = args.slice(1).join(" ") || "No reason provided";
-
-    let blacklist = {};
-    try {
-      blacklist = JSON.parse(fs.readFileSync(BLACKLIST_PATH, "utf8"));
-    } catch {}
-
     blacklist[user.id] = reason;
+    writeBlacklist(blacklist);
 
-    fs.writeFileSync(BLACKLIST_PATH, JSON.stringify(blacklist, null, 2));
+    // Auto DM
+    try {
+      await user.send(
+        `⛔ **You have been blacklisted from using the bot.**\n\n**Reason:** ${reason}`
+      );
+    } catch {
+      // DM closed, ignore
+    }
 
-    return message.reply(
-      `⛔ **${user.tag}** has been blacklisted.\n**Reason:** ${reason}`
-    );
+    const embed = new EmbedBuilder()
+      .setColor("Red")
+      .setTitle("⛔ User Blacklisted")
+      .setThumbnail(user.displayAvatarURL({ dynamic: true }))
+      .addFields(
+        { name: "User", value: user.tag, inline: true },
+        { name: "ID", value: user.id, inline: true },
+        { name: "Reason", value: reason }
+      )
+      .setFooter({ text: `Blacklisted by ${message.author.tag}` })
+      .setTimestamp();
+
+    message.channel.send({ embeds: [embed] });
   }
 };
