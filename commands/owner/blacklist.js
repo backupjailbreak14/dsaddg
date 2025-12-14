@@ -3,7 +3,7 @@ const fs = require("fs");
 const path = require("path");
 const { OWNER_ID } = require("../../config");
 
-const blacklistPath = path.join(__dirname, "../data/blacklist.json");
+const blacklistPath = path.join(__dirname, "../../data/blacklist.json");
 
 function readBlacklist() {
   if (!fs.existsSync(blacklistPath)) return {};
@@ -18,25 +18,50 @@ module.exports = {
   name: "blacklist",
   category: "owner",
 
-  run: async (client, message, args) => {
+  async run(client, message, args) {
     if (message.author.id !== OWNER_ID) return;
 
     const blacklist = readBlacklist();
 
-    // ----------------------
+    // ======================
+    // USAGE EMBED
+    // ======================
+    if (!args.length) {
+      const embed = new EmbedBuilder()
+        .setColor("#8b0000")
+        .setAuthor({
+          name: "USSR Blacklist",
+          iconURL: client.user.displayAvatarURL()
+        })
+        .setDescription(
+          "**Usage:**\n" +
+          "```\n.blacklist @user <reason>\n.blacklist list\n```"
+        )
+        .setFooter({ text: "Blacklist management" })
+        .setTimestamp();
+
+      return message.reply({ embeds: [embed] });
+    }
+
+    // ======================
     // .blacklist list
-    // ----------------------
+    // ======================
     if (args[0] === "list") {
       const entries = Object.entries(blacklist);
 
-      if (entries.length === 0) {
-        return message.reply("✅ Blacklist is empty.");
+      if (!entries.length) {
+        const embed = new EmbedBuilder()
+          .setColor("Green")
+          .setDescription("✅ **The blacklist is currently empty.**")
+          .setTimestamp();
+
+        return message.reply({ embeds: [embed] });
       }
 
       const description = entries
         .map(
           ([id, reason], i) =>
-            `**${i + 1}.** <@${id}>\n📝 ${reason}`
+            `**${i + 1}.** <@${id}>\n📝 *${reason}*`
         )
         .join("\n\n");
 
@@ -44,39 +69,57 @@ module.exports = {
         .setColor("Red")
         .setTitle("⛔ Blacklisted Users")
         .setDescription(description)
-        .setFooter({ text: `Total: ${entries.length}` })
+        .setFooter({ text: `Total blacklisted: ${entries.length}` })
         .setTimestamp();
 
       return message.channel.send({ embeds: [embed] });
     }
 
-    // ----------------------
+    // ======================
     // .blacklist @user reason
-    // ----------------------
+    // ======================
     const user = message.mentions.users.first();
     if (!user) {
-      return message.reply("Usage: `.blacklist @user <reason>` or `.blacklist list`");
+      const embed = new EmbedBuilder()
+        .setColor("Orange")
+        .setDescription(
+          "⚠️ **Invalid usage**\n```\n.blacklist @user <reason>\n```"
+        );
+
+      return message.reply({ embeds: [embed] });
     }
 
     const reason = args.slice(1).join(" ") || "No reason provided";
     blacklist[user.id] = reason;
     writeBlacklist(blacklist);
 
-    // Auto DM
+    // ======================
+    // AUTO DM (EMBED)
+    // ======================
     try {
-      await user.send(
-        `⛔ **You have been blacklisted from using the bot.**\n\n**Reason:** ${reason}`
-      );
+      const dmEmbed = new EmbedBuilder()
+        .setColor("Red")
+        .setTitle("⛔ You have been blacklisted")
+        .setDescription(
+          "You are no longer allowed to use the bot."
+        )
+        .addFields({ name: "Reason", value: reason })
+        .setTimestamp();
+
+      await user.send({ embeds: [dmEmbed] });
     } catch {
-      // DM closed, ignore
+      // DM closed → ignore
     }
 
+    // ======================
+    // CONFIRM EMBED
+    // ======================
     const embed = new EmbedBuilder()
       .setColor("Red")
       .setTitle("⛔ User Blacklisted")
       .setThumbnail(user.displayAvatarURL({ dynamic: true }))
       .addFields(
-        { name: "User", value: user.tag, inline: true },
+        { name: "User", value: `${user.tag}`, inline: true },
         { name: "ID", value: user.id, inline: true },
         { name: "Reason", value: reason }
       )
