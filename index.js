@@ -1,5 +1,4 @@
 require("dotenv").config();
-const db = require("./utils/database");
 
 // ----------------------
 // TIMESTAMPED LOGGING
@@ -244,13 +243,11 @@ client.on("messageCreate", async (message) => {
   
   // ---- BLACKLIST CHECK ----
   if (message.author.id !== OWNER_ID) {
-    const row = db
-      .prepare("SELECT reason FROM blacklist WHERE user_id = ?")
-      .get(message.author.id);
+    const blacklist = readBlacklist();
 
-    if (row) {
+    if (blacklist[message.author.id]) {
       return message.reply(
-        `⛔ You have been blacklisted from using the bot.\n**Reason:** ${row.reason}`
+        `⛔ You have been blacklisted from using the bot.\n**Reason:** ${blacklist[message.author.id]}`
       );
     }
   }
