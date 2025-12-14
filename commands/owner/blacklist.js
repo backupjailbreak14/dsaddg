@@ -86,7 +86,15 @@ module.exports = {
     // ======================
     // @user OR userID
     // ======================
-    const target = resolveUser(client, message, args[0]);
+    let target = resolveUser(client, message, args[0]);
+
+    if (!target && /^\d{17,20}$/.test(args[0])) {
+      try {
+        target = await client.users.fetch(args[0]);
+      } catch {
+        target = null;
+      }
+    }
     const userId = target ? target.id : args[0];
 
     // simpele ID check
