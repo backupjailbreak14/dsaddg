@@ -363,7 +363,7 @@ client.on("ready", async () => {
   const statuses = [
     "watching bear king plan raids",
     "preparing for a purge",
-    "waiting for kyerra",
+    "waiting for vyborg",
     "waiting for war",
     "watching over ikiller to stop aa",
     ".help"
