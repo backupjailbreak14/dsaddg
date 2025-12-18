@@ -14,3 +14,6 @@ expertMode = true
 [[ports]]
 localPort = 3000
 externalPort = 3000
+
+[nix]
+packages = ["openssh"]
