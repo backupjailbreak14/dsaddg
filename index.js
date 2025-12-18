@@ -249,7 +249,7 @@ const specialTriggers = {
   test: "do not test me.",
   "<@846438881485389855>": "<@846438881485389855> get pinged",
   "<@332431665005854720>": "🇷🇴",
-  dobry: "dobry"
+  dobry: "dobry 🫡"
 };
 
 // ----------------------
