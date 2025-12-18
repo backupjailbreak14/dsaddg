@@ -71,6 +71,37 @@ const {
 const fs = require("fs");
 const path = require("path");
 
+// ----------------------
+// BLACKLIST (JSON STORAGE)
+// ----------------------
+const BLACKLIST_PATH = path.join(__dirname, "utils", "blacklist.json");
+
+function readBlacklist() {
+  try {
+    if (!fs.existsSync(BLACKLIST_PATH)) {
+      fs.writeFileSync(BLACKLIST_PATH, JSON.stringify({}, null, 2));
+    }
+
+    const raw = fs.readFileSync(BLACKLIST_PATH, "utf8");
+    return JSON.parse(raw || "{}");
+  } catch (err) {
+    logError("❌ Failed to read blacklist:", err);
+    return {};
+  }
+}
+
+function writeBlacklist(data) {
+  try {
+    fs.writeFileSync(
+      BLACKLIST_PATH,
+      JSON.stringify(data, null, 2)
+    );
+  } catch (err) {
+    logError("❌ Failed to write blacklist:", err);
+  }
+}
+
+
 const BOT_TOKEN = process.env.BOT_TOKEN;
 const PREFIX = process.env.PREFIX || ".";
 const { OWNER_ID } = require("./config");
