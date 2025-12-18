@@ -204,7 +204,7 @@ const pingResponses = new Map([
       name: "Spiderman",
       content: "do not ping spiderman",
       files: [
-        "https://media.discordapp.net/attachments/853304828386344970/1446905885388570664/image.png?ex=6938529d&is=6937011d&hm=78f94a74c2e82d9b839220227f2f26940b0bea71c64e9dd721c8f712b8f19471&=&format=webp&quality=lossless&width=1118&height=552"
+        "https://raw.githubusercontent.com/backupjailbreak14/dsaddg/main/assets/images/spiderman.png"
       ]
     }
   ],
@@ -248,7 +248,8 @@ const specialTriggers = {
   "hesywg22zj2zbuuej": "Happy Birthday boss <@704331555853697074> 🎉",
   test: "do not test me.",
   "<@846438881485389855>": "<@846438881485389855> get pinged",
-  "<@332431665005854720>": "🇷🇴"
+  "<@332431665005854720>": "🇷🇴",
+  dobry: "dobry"
 };
 
 // ----------------------
