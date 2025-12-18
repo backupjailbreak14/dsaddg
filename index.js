@@ -299,10 +299,13 @@ client.on("messageCreate", async (message) => {
     }
   }
 
-  // TRIGGERS
-  if (specialTriggers[message.content]) {
-    return message.restSend(specialTriggers[message.content]);
+  // TRIGGERS (case-insensitive)
+  const contentLower = message.content.toLowerCase();
+
+  if (specialTriggers[contentLower]) {
+    return message.restSend(specialTriggers[contentLower]);
   }
+
 
   // COMMAND HANDLER
   if (!message.content.startsWith(PREFIX)) return;
