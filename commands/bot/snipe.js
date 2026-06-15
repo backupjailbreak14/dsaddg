@@ -14,7 +14,7 @@ module.exports = {
         }
 
         const embed = new EmbedBuilder()
-            .setTitle("🕵️ Sniped Deleted Message")
+            .setTitle("Uh oh, someone deleted a message")
             .addFields(
                 { name: "📍 Channel", value: `<#${message.channel.id}>`, inline: true },
                 { name: "👤 Author", value: `<@${msg.author}>`, inline: true },
