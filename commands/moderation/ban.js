@@ -11,7 +11,8 @@ module.exports = {
 				content: "❌ You are not allowed to use this command."
 			});
 		}
-
+		await message.delete().catch(() => {});
+		
 		if (!args[0]) {
 			return message.channel.send({
 				content: "❌ Please mention a user or provide an ID!"
@@ -51,8 +52,7 @@ module.exports = {
 						{ name: "Reason", value: reason }
 					)
 					.setFooter({
-						text: `Banned by ${message.author.tag}`,
-						iconURL: message.author.displayAvatarURL()
+						text: `Better luck next time`,
 					});
 
 				return message.channel.send({ embeds: [embed] });
@@ -69,8 +69,7 @@ module.exports = {
 					{ name: "Reason", value: reason }
 				)
 				.setFooter({
-					text: `Banned by ${message.author.tag}`,
-					iconURL: message.author.displayAvatarURL()
+					text: `Better luck next time`,
 				});
 
 			return message.channel.send({ embeds: [embed] });
