@@ -309,11 +309,13 @@ client.on("messageCreate", async (message) => {
     }
   }
 
-  // TRIGGERS (case-insensitive)
+  // TRIGGERS (case-insensitive, works inside sentences)
   const contentLower = message.content.toLowerCase();
 
-  if (specialTriggers[contentLower]) {
-    return message.restSend(specialTriggers[contentLower]);
+  for (const [key, value] of Object.entries(specialTriggers)) {
+    if (contentLower.split(" ").includes(key.toLowerCase()))
+      return message.restSend(value);
+    }
   }
 
 
