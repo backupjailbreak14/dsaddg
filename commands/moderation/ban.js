@@ -18,41 +18,54 @@ module.exports = {
 			});
 		}
 
-		let member;
+		const target = args[0];
+		const reason = args.slice(1).join(" ") || "No Reason Given";
 
-		// Try mention first, then fetch by ID
+		let member = null;
+
 		try {
 			member =
 				message.mentions.members.first() ||
-				await message.guild.members.fetch(args[0]);
+				await message.guild.members.fetch(target);
 		} catch {
 			member = null;
 		}
 
-		if (!member) {
-			return message.channel.send({
-				content: "❌ Could not find that user in this server."
-			});
-		}
-
-		// Check if bannable
-		if (!member.bannable) {
-			return message.channel.send({
-				content: "❌ I can't ban this user (missing permissions or role too high)."
-			});
-		}
-
-		const reason = args.slice(1).join(" ") || "No Reason Given";
-
 		try {
-			await member.ban({ reason });
+			// User is in server
+			if (member) {
+				if (!member.bannable) {
+					return message.channel.send({
+						content: "❌ I can't ban this user (missing permissions or role too high)."
+					});
+				}
+
+				await member.ban({ reason });
+
+				const embed = new EmbedBuilder()
+					.setTitle("🔨 Member Banned")
+					.setColor("Red")
+					.addFields(
+						{ name: "User", value: member.user.tag, inline: true },
+						{ name: "ID", value: member.id, inline: true },
+						{ name: "Reason", value: reason }
+					)
+					.setFooter({
+						text: `Banned by ${message.author.tag}`,
+						iconURL: message.author.displayAvatarURL()
+					});
+
+				return message.channel.send({ embeds: [embed] });
+			}
+
+			// User not in server → ban by ID
+			await message.guild.bans.create(target, { reason });
 
 			const embed = new EmbedBuilder()
-				.setTitle("🔨 Member Banned")
+				.setTitle("🔨 User Banned")
 				.setColor("Red")
 				.addFields(
-					{ name: "User", value: `${member.user.tag}`, inline: true },
-					{ name: "ID", value: member.id, inline: true },
+					{ name: "ID", value: target, inline: true },
 					{ name: "Reason", value: reason }
 				)
 				.setFooter({
@@ -64,8 +77,9 @@ module.exports = {
 
 		} catch (err) {
 			console.error(err);
+
 			return message.channel.send({
-				content: "❌ Failed to ban the user."
+				content: "❌ Failed to ban the user. Check the ID and my permissions."
 			});
 		}
 	}

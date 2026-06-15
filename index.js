@@ -237,6 +237,16 @@ const pingResponses = new Map([
         "https://raw.githubusercontent.com/backupjailbreak14/dsaddg/main/assets/images/macarena.jpg"
       ]
     }
+  ],
+  [
+    "361611117317062666",
+    {
+      name: "ethen ping",
+      content: "",
+      files: [
+        "https://raw.githubusercontent.com/backupjailbreak14/dsaddg/main/assets/images/stalin.gif"
+      ]
+    }
   ]
 ]);
 
