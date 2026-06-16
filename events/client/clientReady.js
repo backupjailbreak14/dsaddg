@@ -1,112 +1,105 @@
 const Reboot = require("../../models/Reboot");
 
-module.exports = {
-		name: "clientReady",
-		once: true,
+module.exports = async (client) => {
 
-		async execute(client) {
-
-				const botStatus = [
-						"watching bear king plan raids",
-						"preparing for a purge",
-						"waiting for vyborg",
-						"waiting for war",
-						"watching over ikiller to stop aa",
-						".help"
-				];
+	const botStatus = [
+		"watching bear king plan raids",
+		"preparing for a purge",
+		"waiting for vyborg",
+		"waiting for war",
+		"watching over ikiller to stop aa",
+		".help"
+	];
 
 
-				console.log(`Hello ${client.user.username} is now online!`);
+	console.log(`Hello ${client.user.username} is now online!`);
 
-				client.user.setUsername("USSR").catch(() => {});
-
-
-				// ============================================
-				// 🔁 REBOOT RECOVERY
-				// ============================================
-
-				try {
-
-						console.log("🔍 Checking reboot recovery...");
-
-						const data = await Reboot.findOne();
-
-						console.log("🔍 Reboot data:", data);
+	client.user.setUsername("USSR").catch(() => {});
 
 
-						if (data) {
+	// ============================================
+	// 🔁 REBOOT RECOVERY
+	// ============================================
 
-								const channel = await client.channels
-										.fetch(data.channelId)
-										.catch(() => null);
+	try {
 
+		console.log("🔍 Checking reboot recovery...");
 
-								if (channel) {
+		const data = await Reboot.findOne();
 
-										await channel.send(
-												"🔁 **Bot has successfully rebooted!**"
-										);
-
-										console.log("✅ Reboot message sent.");
-
-								} else {
-
-										console.log("❌ Could not find reboot channel.");
-
-								}
+		console.log("🔍 Reboot data:", data);
 
 
-								await Reboot.deleteMany();
+		if (data) {
 
-								console.log("🗑️ Reboot database cleared.");
-
-						} else {
-
-								console.log("ℹ️ No reboot found.");
-
-						}
+			const channel = await client.channels
+				.fetch(data.channelId)
+				.catch(() => null);
 
 
-				} catch (err) {
+			if (channel) {
 
-						console.error(
-								"⚠️ Reboot recovery error:",
-								err
-						);
+				await channel.send(
+					"🔁 **Bot has successfully rebooted!**"
+				);
 
-				}
+				console.log("✅ Reboot message sent.");
 
+			} else {
 
+				console.log("❌ Could not find reboot channel.");
 
-				// ============================================
-				// 🔄 ROTATING STATUS
-				// ============================================
-
-				setInterval(() => {
-
-						const status =
-								botStatus[
-										Math.floor(
-												Math.random() * botStatus.length
-										)
-								];
+			}
 
 
-						client.user.setPresence({
+			await Reboot.deleteMany();
 
-								activities: [
-										{
-												name: status,
-												type: 0
-										}
-								],
+			console.log("🗑️ Reboot database cleared.");
 
-								status: "online"
+		} else {
 
-						});
-
-
-				}, 5000);
+			console.log("ℹ️ No reboot found.");
 
 		}
+
+
+	} catch (err) {
+
+		console.error(
+			"⚠️ Reboot recovery error:",
+			err
+		);
+
+	}
+
+
+
+	// ============================================
+	// 🔄 ROTATING STATUS
+	// ============================================
+
+	setInterval(() => {
+
+		const status =
+			botStatus[
+				Math.floor(Math.random() * botStatus.length)
+			];
+
+
+		client.user.setPresence({
+
+			activities: [
+				{
+					name: status,
+					type: 0
+				}
+			],
+
+			status: "online"
+
+		});
+
+
+	}, 5000);
+
 };
