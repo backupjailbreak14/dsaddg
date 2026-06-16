@@ -1,5 +1,5 @@
 const { ChannelType } = require("discord.js");
-const storage = require("../../utils/suggestions");
+const SuggestConfig = require("../../models/SuggestionConfig");
 
 module.exports = {
     name: "setsuggest",
@@ -18,7 +18,11 @@ module.exports = {
             return message.restSend("❌ Must be a text channel.");
         }
 
-        storage.setSuggestionChannel(message.guild.id, channel.id);
+        await SuggestConfig.findOneAndUpdate(
+            { guildId: message.guild.id },
+            { channelId: channel.id },
+            { upsert: true, new: true }
+        );
 
         return message.restSend(
             `✅ Suggestion channel set to <#${channel.id}>`

@@ -1,4 +1,4 @@
-const storage = require("../../utils/suggestions");
+const Suggestion = require("../../models/Suggestion");
 
 module.exports = {
     name: "reply",
@@ -10,53 +10,38 @@ module.exports = {
     run: async (client, message, args) => {
         const id = args[0];
         if (!id) {
-            return message.restSend({
-                content: "❌ Please provide a suggestion ID."
-            });
+            return message.restSend("❌ Please provide a suggestion ID.");
         }
 
         const action = args[1];
         if (!["approve", "deny"].includes(action)) {
-            return message.restSend({
-                content: "❌ Use `approve` or `deny`."
-            });
+            return message.restSend("❌ Use `approve` or `deny`.");
         }
 
         const replyMessage = args.slice(2).join(" ");
         if (!replyMessage) {
-            return message.restSend({
-                content: "❌ Please provide a reply message."
-            });
+            return message.restSend("❌ Please provide a reply message.");
         }
 
-        const guildData = storage.getGuild(message.guild.id);
-
-        if (
-            !guildData ||
-            !guildData.suggests ||
-            !Array.isArray(guildData.suggests)
-        ) {
-            return message.restSend({
-                content: "❌ No suggestions stored for this guild."
-            });
-        }
-
-        const suggestion = guildData.suggests.find(s => s.id == id);
+        // 🔍 Find suggestion in MongoDB
+        const suggestion = await Suggestion.findOne({
+            guildId: message.guild.id,
+            id: id
+        });
 
         if (!suggestion) {
-            return message.restSend({
-                content: "❌ Suggestion not found."
-            });
+            return message.restSend("❌ Suggestion not found.");
         }
 
-        storage.updateSuggestion(message.guild.id, id, {
-            status: action === "approve" ? "approved" : "denied",
-            reply: replyMessage,
-            staff: message.author.id
-        });
+        // 🔄 Update suggestion
+        suggestion.status = action === "approve" ? "approved" : "denied";
+        suggestion.reply = replyMessage;
+        suggestion.staff = message.author.id;
 
-        return message.restSend({
-            content: `✅ Suggestion **${id}** has been **${action}**.`
-        });
+        await suggestion.save();
+
+        return message.restSend(
+            `✅ Suggestion **${id}** has been **${action}**.`
+        );
     }
 };
