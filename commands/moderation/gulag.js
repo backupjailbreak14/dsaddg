@@ -1,5 +1,5 @@
 const { EmbedBuilder, PermissionsBitField } = require("discord.js");
-const Gulag = require("../../models/gulag");
+const Gulag = require("../../models/Gulag");
 
 const GULAG_ROLE = "1155599155343925298";
 const GULAG_CHANNEL = "1446895095059058729";

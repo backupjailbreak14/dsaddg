@@ -17,6 +17,7 @@
     "express": "^4.19.2",
     "gifencoder": "^2.0.1",
     "jimp": "^0.22.10",
+    "mongodb": "^7.3.0",
     "mongoose": "^9.7.0",
     "node-fetch": "^2.7.0",
     "sharp": "^0.33.2"
