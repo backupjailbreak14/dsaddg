@@ -5,6 +5,7 @@ module.exports = {
 		category: "owner",
 
 		run: async (client, message) => {
+
 				// Owner check
 				if (message.author.id !== "704331555853697074") {
 						return message.channel.send("❌ You cannot use this command!");
@@ -15,12 +16,22 @@ module.exports = {
 
 				await message.channel.send("🔄 Rebooting bot...");
 
-				// 💾 save reboot state in MongoDB
-				await Reboot.create({
-						channelId: message.channel.id
-				});
+				try {
+						// Save reboot state
+						await Reboot.create({
+								channelId: message.channel.id
+						});
 
-				console.log("🔄 Safe restart triggered...");
-				process.exit();
+						console.log("🔄 Safe restart triggered...");
+
+						// Give MongoDB time to save
+						setTimeout(() => {
+								process.exit(0);
+						}, 1000);
+
+				} catch (err) {
+						console.error("❌ Failed to save reboot:", err);
+						client.isRebooting = false;
+				}
 		}
 };

@@ -11,43 +11,100 @@ module.exports = (client) => {
 				".help"
 		];
 
-		client.on("ready", async () => {
+
+		client.once("clientReady", async () => {
 
 				console.log(`Hello ${client.user.username} is now online!`);
 
 				client.user.setUsername("USSR").catch(() => {});
 
+
 				// ============================================
-				// 🔁 REBOOT RECOVERY (MONGODB)
+				// 🔁 REBOOT RECOVERY
 				// ============================================
+
 				try {
+
+						console.log("🔍 Checking reboot recovery...");
+
 						const data = await Reboot.findOne();
 
+						console.log("🔍 Reboot data:", data);
+
+
 						if (data) {
-								const channel = await client.channels.fetch(data.channelId).catch(() => null);
+
+								const channel = await client.channels
+										.fetch(data.channelId)
+										.catch(() => null);
+
 
 								if (channel) {
-										await channel.send("🔁 **Bot has successfully rebooted!**");
+
+										await channel.send(
+												"🔁 **Bot has successfully rebooted!**"
+										);
+
+										console.log("✅ Reboot message sent.");
+
+								} else {
+
+										console.log(
+												"❌ Could not find reboot channel."
+										);
+
 								}
 
+
 								await Reboot.deleteMany();
-								console.log("🔄 Reboot recovery executed.");
+
+								console.log(
+										"🗑️ Reboot database cleared."
+								);
 						}
+
+
 				} catch (err) {
-						console.log("⚠️ Reboot recovery error:", err);
+
+						console.log(
+								"⚠️ Reboot recovery error:",
+								err
+						);
+
 				}
+
+
 
 				// ============================================
 				// 🔄 ROTATING STATUS
 				// ============================================
+
 				setInterval(() => {
-						const status = botStatus[Math.floor(Math.random() * botStatus.length)];
+
+						const status =
+								botStatus[
+										Math.floor(
+												Math.random() * botStatus.length
+										)
+								];
+
 
 						client.user.setPresence({
-								activities: [{ name: status, type: 0 }],
+
+								activities: [
+										{
+												name: status,
+												type: 0
+										}
+								],
+
 								status: "online"
+
 						});
 
+
 				}, 5000);
+
 		});
+
 };
