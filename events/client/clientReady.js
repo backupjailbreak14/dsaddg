@@ -1,18 +1,20 @@
 const Reboot = require("../../models/Reboot");
 
-module.exports = (client) => {
+module.exports = {
+		name: "clientReady",
+		once: true,
 
-		const botStatus = [
-				"watching bear king plan raids",
-				"preparing for a purge",
-				"waiting for vyborg",
-				"waiting for war",
-				"watching over ikiller to stop aa",
-				".help"
-		];
+		async execute(client) {
 
+				const botStatus = [
+						"watching bear king plan raids",
+						"preparing for a purge",
+						"waiting for vyborg",
+						"waiting for war",
+						"watching over ikiller to stop aa",
+						".help"
+				];
 
-		client.once("clientReady", async () => {
 
 				console.log(`Hello ${client.user.username} is now online!`);
 
@@ -49,24 +51,25 @@ module.exports = (client) => {
 
 								} else {
 
-										console.log(
-												"❌ Could not find reboot channel."
-										);
+										console.log("❌ Could not find reboot channel.");
 
 								}
 
 
 								await Reboot.deleteMany();
 
-								console.log(
-										"🗑️ Reboot database cleared."
-								);
+								console.log("🗑️ Reboot database cleared.");
+
+						} else {
+
+								console.log("ℹ️ No reboot found.");
+
 						}
 
 
 				} catch (err) {
 
-						console.log(
+						console.error(
 								"⚠️ Reboot recovery error:",
 								err
 						);
@@ -105,6 +108,5 @@ module.exports = (client) => {
 
 				}, 5000);
 
-		});
-
+		}
 };

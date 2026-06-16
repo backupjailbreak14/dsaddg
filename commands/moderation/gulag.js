@@ -69,7 +69,7 @@ module.exports = {
             .setDescription(
                 `**<@${target.id}> has been sent to the gulag.**`
             )
-            .setFooter({ text: "Gulag System", iconURL: FOOTER_ICON });
+            .setFooter({ text: "Gulag Management", iconURL: FOOTER_ICON });
 
         await message.channel.send({ embeds: [embed1, embed2] });
 

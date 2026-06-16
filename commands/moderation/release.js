@@ -77,7 +77,7 @@ module.exports = {
             .setAuthor({ name: "User released." })
             .setDescription(
                 `**<@${target.id}> has been released from the gulag.**\n` +
-                `May they serve the system better this time.`
+                `May they serve the Soviet Union better this time.`
             )
             .setFooter({ text: "Gulag System", iconURL: FOOTER_ICON });
 
