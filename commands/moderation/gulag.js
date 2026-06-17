@@ -13,8 +13,26 @@ const FOOTER_ICON =
 module.exports = {
     name: "gulag",
     category: "moderation",
+    permissions: ["MANAGE_ROLES"],
 
-    run: async (client, message, args) => {
+        run: async (client, message, args) => {
+            console.log(
+                "ManageRoles:",
+                message.member.permissions.has(
+                    PermissionsBitField.Flags.ManageRoles
+                )
+            );
+
+        // Permission check
+        if (
+            !message.member.permissions.has(
+                PermissionsBitField.Flags.ManageRoles
+            )
+        ) {
+            return message.restSend(
+                "❌ You need **Manage Roles** permission to use this command."
+            );
+        }
 
         let target = message.mentions.members.first();
 
@@ -45,7 +63,9 @@ module.exports = {
             { userId: target.id },
             {
                 userId: target.id,
-                roles: target.roles.cache.map(r => r.id)
+                roles: target.roles.cache
+                .filter(r => r.id !== message.guild.id)
+                .map(r => r.id)
             },
             { upsert: true, new: true }
         );
@@ -67,8 +87,7 @@ module.exports = {
             .setColor("#8b0000")
             .setAuthor({ name: "User imprisoned." })
             .setDescription(
-                `**<@${target.id}> has been sent to the gulag.**\n` +
-                `Glory to the Soviet Union.`
+                `**<@${target.id}> has been sent to the gulag.**`
             )
             .setFooter({ text: "Gulag Management", iconURL: FOOTER_ICON });
 
@@ -77,6 +96,9 @@ module.exports = {
         const gulagChannel = message.guild.channels.cache.get(GULAG_CHANNEL);
         if (gulagChannel) {
             gulagChannel.send(`🔒 <@${target.id}> has been imprisoned.`);
+        }
+    }
+};t.id}> has been imprisoned.`);
         }
     }
 };
