@@ -3,6 +3,7 @@ const { EmbedBuilder } = require("discord.js");
 module.exports = {
 	name: "role",
 	category: "moderation",
+	permissions: ["MANAGE_ROLES"],
 
 	run: async (client, message, args) => {
 
