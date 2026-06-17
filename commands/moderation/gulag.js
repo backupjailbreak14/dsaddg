@@ -14,25 +14,9 @@ module.exports = {
     name: "gulag",
     category: "moderation",
     permissions: ["MANAGE_ROLES"],
+    description: "Send a user to the gulag."
 
-        run: async (client, message, args) => {
-            console.log(
-                "ManageRoles:",
-                message.member.permissions.has(
-                    PermissionsBitField.Flags.ManageRoles
-                )
-            );
-
-        // Permission check
-        if (
-            !message.member.permissions.has(
-                PermissionsBitField.Flags.ManageRoles
-            )
-        ) {
-            return message.restSend(
-                "❌ You need **Manage Roles** permission to use this command."
-            );
-        }
+    run: async (client, message, args) => {
 
         let target = message.mentions.members.first();
 
@@ -63,9 +47,7 @@ module.exports = {
             { userId: target.id },
             {
                 userId: target.id,
-                roles: target.roles.cache
-                .filter(r => r.id !== message.guild.id)
-                .map(r => r.id)
+                roles: target.roles.cache.map(r => r.id)
             },
             { upsert: true, new: true }
         );
@@ -87,7 +69,8 @@ module.exports = {
             .setColor("#8b0000")
             .setAuthor({ name: "User imprisoned." })
             .setDescription(
-                `**<@${target.id}> has been sent to the gulag.**`
+                `**<@${target.id}> has been sent to the gulag.**\n` +
+                `Glory to the Soviet Union.`
             )
             .setFooter({ text: "Gulag Management", iconURL: FOOTER_ICON });
 
