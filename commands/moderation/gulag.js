@@ -67,7 +67,8 @@ module.exports = {
             .setColor("#8b0000")
             .setAuthor({ name: "User imprisoned." })
             .setDescription(
-                `**<@${target.id}> has been sent to the gulag.**`
+                `**<@${target.id}> has been sent to the gulag.**\n` +
+                `Glory to the Soviet Union.`
             )
             .setFooter({ text: "Gulag Management", iconURL: FOOTER_ICON });
 
