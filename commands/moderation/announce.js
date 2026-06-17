@@ -6,7 +6,7 @@ module.exports = {
     category: "moderation",
     description: "Send an announcement to a chosen channel.",
     usage: "announce #channel <message>",
-    permissions: ["Administrator"]
+    permissions: ["Administrator"],
 
     run: async (client, message, args) => {
 
