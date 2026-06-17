@@ -79,7 +79,4 @@ module.exports = {
             gulagChannel.send(`🔒 <@${target.id}> has been imprisoned.`);
         }
     }
-};t.id}> has been imprisoned.`);
-        }
-    }
 };
