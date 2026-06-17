@@ -251,6 +251,20 @@ const pingResponses = new Map([
 ]);
 
 // ----------------------
+// PING RESPONSE ROLE EXCEPTIONS
+// ----------------------
+// Only applies to specific ping targets
+const pingIgnoreRoles = {
+  "361611117317062666": [
+    "1178991057342582814", // Presidium 
+    "1123600249848614961", // Engineering Institute
+    "1147205872603365457", // Interns
+    "1123600249848614953" // stavka
+  ]
+};
+
+
+// ----------------------
 // TRIGGERS
 // ----------------------
 const specialTriggers = {
@@ -298,10 +312,25 @@ client.on("messageCreate", async (message) => {
 
   // PING RESPONSES
   if (!message.content.startsWith(PREFIX) && message.mentions.users.size === 1) {
+
     const id = message.mentions.users.first().id;
 
     if (pingResponses.has(id)) {
+
+      // Check ignored roles for this specific ping
+      if (pingIgnoreRoles[id]) {
+
+        const hasIgnoredRole = message.member?.roles.cache.some(role =>
+          pingIgnoreRoles[id].includes(role.id)
+        );
+
+        if (hasIgnoredRole) {
+          return;
+        }
+      }
+
       const data = pingResponses.get(id);
+
       return message.restSend({
         content: data.content,
         files: data.files
