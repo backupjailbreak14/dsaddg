@@ -3,7 +3,7 @@ require("dotenv").config();
 module.exports = (client) => {
     const prompt = process.openStdin();
 
-    client.on("ready", () => {
+    client.on("clientReady", () => {
         console.log("[CONSOLE] Console input activated.");
         console.log("[CONSOLE] Type a message below and press ENTER to send it.");
 

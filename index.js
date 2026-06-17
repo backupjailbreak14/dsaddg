@@ -396,7 +396,7 @@ client.on("messageCreate", async (message) => {
 // ----------------------
 // READY EVENT + REBOOT RECOVERY
 // ----------------------
-client.on("ready", async () => {
+client.on("clientReady", async () => {
   botOnlineSince = Date.now();
   log(`TOKEN IS LOADED & BOT IS READY: ${client.user.tag}`);
 

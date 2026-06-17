@@ -12,6 +12,7 @@ module.exports = {
     name: "release",
     category: "moderation",
     description: "Releases a user from the gulag and restores their old roles.",
+    permissions: ["MANAGE_ROLES"],
 
     run: async (client, message, args) => {
 
