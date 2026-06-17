@@ -13,8 +13,6 @@ const FOOTER_ICON =
 module.exports = {
     name: "gulag",
     category: "moderation",
-    permissions: ["MANAGE_ROLES"],
-    description: "Send a user to the gulag.",
 
     run: async (client, message, args) => {
 
