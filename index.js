@@ -1,4 +1,5 @@
 require("dotenv").config();
+require("./deploy-commands");
 const connectMongo = require("./utils/mongo");
 // ----------------------
 // TIMESTAMPED LOGGING
