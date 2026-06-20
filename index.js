@@ -157,18 +157,30 @@ function loadCommands(dir) {
           continue;
         }
 
-        client.commands.set(cmd.name, cmd);
-        
+        // PREFIX COMMAND
+        if (cmd.name) {
+            client.commands.set(cmd.name, cmd);
+
+            if (Array.isArray(cmd.aliases)) {
+                cmd.aliases.forEach((a) =>
+                    client.aliases.set(a, cmd.name)
+                );
+            }
+
+            log(`✔ Loaded prefix command: ${cmd.name}`);
+        }
+
+
+        // SLASH COMMAND
         if (cmd.data) {
             client.slashCommands.set(
                 cmd.data.name,
                 cmd
             );
+
+            log(`✔ Loaded slash command: ${cmd.data.name}`);
         }
 
-        if (Array.isArray(cmd.aliases)) {
-          cmd.aliases.forEach((a) => client.aliases.set(a, cmd.name));
-        }
 
         log(`✔ Loaded command: ${cmd.name}`);
       } catch (err) {
