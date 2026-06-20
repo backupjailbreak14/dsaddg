@@ -141,57 +141,85 @@ function attachRestSend(msg) {
 }
 
 // ----------------------
-// COMMAND LOADER
+// PREFIX COMMAND LOADER
 // ----------------------
-function loadCommands(dir) {
+function loadPrefixCommands(dir) {
+  const entries = fs.readdirSync(dir, { withFileTypes: true });
+
+  for (const entry of entries) {
+    const full = path.join(dir, entry.name);
+
+    // Skip slash commands folder
+    if (entry.name === "slash") continue;
+
+    if (entry.isDirectory()) {
+      loadPrefixCommands(full);
+
+    } else if (entry.name.endsWith(".js")) {
+
+      try {
+        const cmd = require(full);
+
+        // Only load prefix commands
+        if (!cmd.name || cmd.data) continue;
+
+        client.commands.set(cmd.name, cmd);
+
+        if (Array.isArray(cmd.aliases)) {
+          cmd.aliases.forEach((alias) =>
+            client.aliases.set(alias, cmd.name)
+          );
+        }
+
+        log(`✔ Loaded prefix command: ${cmd.name}`);
+
+      } catch (err) {
+        log(`❌ Error loading prefix command: ${full}`);
+        logError(err);
+      }
+    }
+  }
+}
+
+
+// ----------------------
+// SLASH COMMAND LOADER
+// ----------------------
+function loadSlashCommands(dir) {
   const entries = fs.readdirSync(dir, { withFileTypes: true });
 
   for (const entry of entries) {
     const full = path.join(dir, entry.name);
 
     if (entry.isDirectory()) {
-      loadCommands(full);
+      loadSlashCommands(full);
 
-    } else if (entry.isFile() && entry.name.endsWith(".js")) {
+    } else if (entry.name.endsWith(".js")) {
 
       try {
         const cmd = require(full);
 
-        if (!cmd.name && !cmd.data) {
-          log(`❌ Invalid command: ${full}`);
-          continue;
-        }
+        // Only load slash commands
+        if (!cmd.data) continue;
 
-        if (cmd.name) {
-          client.commands.set(cmd.name, cmd);
-        }
+        client.slashCommands.set(cmd.data.name, cmd);
 
-        if (cmd.data) {
-          client.slashCommands.set(
-            cmd.data.name,
-            cmd
-          );
-        }
-
-        if (Array.isArray(cmd.aliases)) {
-          cmd.aliases.forEach((a) =>
-            client.aliases.set(a, cmd.name)
-          );
-        }
-
-        log(`✔ Loaded command: ${cmd.name || cmd.data.name}`);
+        log(`✔ Loaded slash command: ${cmd.data.name}`);
 
       } catch (err) {
-
-        log(`❌ Error loading command: ${full}`);
+        log(`❌ Error loading slash command: ${full}`);
         logError(err);
-
       }
     }
   }
 }
 
-loadCommands(path.join(__dirname, "commands"));
+
+// ----------------------
+// LOAD COMMANDS
+// ----------------------
+loadPrefixCommands(path.join(__dirname, "commands"));
+loadSlashCommands(path.join(__dirname, "commands", "slash"));
 
 // ----------------------
 // SNIPE EVENT
