@@ -1,5 +1,6 @@
 const {
-    SlashCommandBuilder
+    SlashCommandBuilder,
+    EmbedBuilder
 } = require("discord.js");
 
 const DmCooldown =
@@ -325,13 +326,13 @@ module.exports = {
             try {
 
 
-                await user.send(
-                `# ${header}
+await user.send(
+`# ${header}
 
-                -# Message directed by ${interaction.user.username}
+-# Message directed by ${interaction.user.username}
 
-                ${content}`
-                );
+${content}`
+);
 
 
                 success++;
@@ -374,36 +375,53 @@ module.exports = {
 
 
 
-        return interaction.editReply(
-        `✅ Message sent.
+        const embed = new EmbedBuilder()
 
-        Recipients:
+            .setTitle("✅ DM Sent Successfully")
+
+            .setDescription(
+        `**Recipients**
         ${users.length}
 
-        Successful:
+        **Successful**
         ${success}
 
-        Failed:
-        ${failed}
+        **Failed**
+        ${failed}`
+            )
 
+            .addFields(
+                {
+                    name: "Message",
+                    value: content.length > 1024
+                        ? content.substring(0, 1021) + "..."
+                        : content
+                },
+                {
+                    name: "Global DM Cooldown",
+                    value:
+        `Used: **${cooldown.uses}/2**
 
-        Header:
-        ${header}
-
-
-        Global DM cooldown:
-
-        Used:
-        ${cooldown.uses}/2
-
-        Remaining:
-        ${remaining} use(s)
+        Remaining: **${remaining} use(s)**
 
         Reset:
         <t:${Math.floor(
         cooldown.resetAt.getTime() / 1000
         )}:R>`
-                );
+                }
+            )
+
+            .setFooter({
+                text: "USSR Management",
+                iconURL: interaction.client.user.displayAvatarURL()
+            })
+
+            .setTimestamp();
+
+
+        return interaction.editReply({
+            embeds: [embed]
+        });
 
 
             }

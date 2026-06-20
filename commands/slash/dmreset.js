@@ -27,7 +27,7 @@ module.exports = {
 
         if (
             interaction.user.id !==
-            process.env.OWNER_ID
+            process.env.ownerID
         ) {
 
             return interaction.reply({
