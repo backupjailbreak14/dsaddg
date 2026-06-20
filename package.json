@@ -4,15 +4,18 @@
   "description": "USSR prefix bot (clean v14)",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js"
+    "start": "node index.js",
+    "deploy": "node deploy-commands.js"
   },
   "engines": {
     "node": "20.x"
   },
   "dependencies": {
+    "@discordjs/rest": "^2.6.1",
     "axios": "^1.7.7",
     "bad-words": "^3.0.4",
     "common-tags": "^1.8.2",
+    "discord-api-types": "^0.38.49",
     "discord.js": "^14.16.3",
     "dotenv": "^16.6.1",
     "express": "^4.19.2",

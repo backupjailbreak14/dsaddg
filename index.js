@@ -120,6 +120,7 @@ const client = new Client({
 // Collections
 client.prefix = PREFIX;
 client.commands = new Collection();
+client.slashCommands = new Collection();
 client.aliases = new Collection();
 client.cooldowns = new Collection();
 client.snipes = new Collection();
@@ -151,12 +152,19 @@ function loadCommands(dir) {
     else if (entry.isFile() && entry.name.endsWith(".js")) {
       try {
         const cmd = require(full);
-        if (!cmd.name || typeof cmd.run !== "function") {
+        if (!cmd.name && !cmd.data) {
           log(`❌ Invalid command: ${full}`);
           continue;
         }
 
         client.commands.set(cmd.name, cmd);
+        
+        if (cmd.data) {
+            client.slashCommands.set(
+                cmd.data.name,
+                cmd
+            );
+        }
 
         if (Array.isArray(cmd.aliases)) {
           cmd.aliases.forEach((a) => client.aliases.set(a, cmd.name));

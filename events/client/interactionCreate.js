@@ -5,7 +5,45 @@ const {
     ButtonStyle
 } = require("discord.js");
 
-module.exports = async (client, interaction) => {
+    module.exports = async (client, interaction) => {
+
+
+    // SLASH COMMANDS
+
+        if (interaction.isChatInputCommand()) {
+
+            const command =
+                client.slashCommands.get(
+                    interaction.commandName
+                );
+
+            if (!command) return;
+
+            try {
+
+                await command.run(
+                    client,
+                    interaction
+                );
+
+            } catch (err) {
+
+                console.error(err);
+
+                if (!interaction.replied) {
+                    interaction.reply({
+                        content: "❌ Error executing command.",
+                        ephemeral: true
+                    });
+                }
+
+            }
+
+            return;
+        }
+
+    // BUTTONS
+
     if (!interaction.isButton()) return;
 
     const customId = interaction.customId;
