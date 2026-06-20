@@ -152,46 +152,37 @@ function loadCommands(dir) {
     else if (entry.isFile() && entry.name.endsWith(".js")) {
       try {
         const cmd = require(full);
+
         if (!cmd.name && !cmd.data) {
-          log(`❌ Invalid command: ${full}`);
-          continue;
+            log(`❌ Invalid command: ${full}`);
+            continue;
         }
 
-        // PREFIX COMMAND
         if (cmd.name) {
-          client.commands.set(cmd.name, cmd);
+            client.commands.set(cmd.name, cmd);
         }
 
-        if (cmd.data) {
-          client.slashCommands.set(
-              cmd.data.name,
-              cmd
-          );
-        }
-
-            log(`✔ Loaded prefix command: ${cmd.name}`);
-        }
-
-
-        // SLASH COMMAND
         if (cmd.data) {
             client.slashCommands.set(
                 cmd.data.name,
                 cmd
             );
-
-            log(`✔ Loaded slash command: ${cmd.data.name}`);
         }
 
+        if (Array.isArray(cmd.aliases)) {
+            cmd.aliases.forEach((a) =>
+                client.aliases.set(a, cmd.name)
+            );
+        }
 
-        log(`✔ Loaded command: ${cmd.name}`);
+        log(`✔ Loaded command: ${cmd.name || cmd.data.name}`);
+
       } catch (err) {
+
         log(`❌ Error loading command: ${full}`);
         logError(err);
+
       }
-    }
-  }
-}
 
 loadCommands(path.join(__dirname, "commands"));
 
