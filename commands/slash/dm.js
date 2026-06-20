@@ -19,16 +19,6 @@ module.exports = {
 
         .addStringOption(option =>
             option
-                .setName("header")
-                .setDescription(
-                    "Message header"
-                )
-                .setRequired(true)
-        )
-
-
-        .addStringOption(option =>
-            option
                 .setName("message")
                 .setDescription(
                     "Message content"
@@ -198,10 +188,7 @@ cooldown.resetAt.getTime() / 1000
         // GET MESSAGE DATA
         // ----------------------
 
-        const header =
-            interaction.options.getString(
-                "header"
-            );
+        const header = "MESSAGE FROM CENTRAL COMMITTEE";
 
 
         const content =
