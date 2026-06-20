@@ -148,31 +148,34 @@ function loadCommands(dir) {
   for (const entry of entries) {
     const full = path.join(dir, entry.name);
 
-    if (entry.isDirectory()) loadCommands(full);
-    else if (entry.isFile() && entry.name.endsWith(".js")) {
+    if (entry.isDirectory()) {
+      loadCommands(full);
+
+    } else if (entry.isFile() && entry.name.endsWith(".js")) {
+
       try {
         const cmd = require(full);
 
         if (!cmd.name && !cmd.data) {
-            log(`❌ Invalid command: ${full}`);
-            continue;
+          log(`❌ Invalid command: ${full}`);
+          continue;
         }
 
         if (cmd.name) {
-            client.commands.set(cmd.name, cmd);
+          client.commands.set(cmd.name, cmd);
         }
 
         if (cmd.data) {
-            client.slashCommands.set(
-                cmd.data.name,
-                cmd
-            );
+          client.slashCommands.set(
+            cmd.data.name,
+            cmd
+          );
         }
 
         if (Array.isArray(cmd.aliases)) {
-            cmd.aliases.forEach((a) =>
-                client.aliases.set(a, cmd.name)
-            );
+          cmd.aliases.forEach((a) =>
+            client.aliases.set(a, cmd.name)
+          );
         }
 
         log(`✔ Loaded command: ${cmd.name || cmd.data.name}`);
@@ -183,6 +186,9 @@ function loadCommands(dir) {
         logError(err);
 
       }
+    }
+  }
+}
 
 loadCommands(path.join(__dirname, "commands"));
 
