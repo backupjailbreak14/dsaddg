@@ -159,13 +159,15 @@ function loadCommands(dir) {
 
         // PREFIX COMMAND
         if (cmd.name) {
-            client.commands.set(cmd.name, cmd);
+          client.commands.set(cmd.name, cmd);
+        }
 
-            if (Array.isArray(cmd.aliases)) {
-                cmd.aliases.forEach((a) =>
-                    client.aliases.set(a, cmd.name)
-                );
-            }
+        if (cmd.data) {
+          client.slashCommands.set(
+              cmd.data.name,
+              cmd
+          );
+        }
 
             log(`✔ Loaded prefix command: ${cmd.name}`);
         }
