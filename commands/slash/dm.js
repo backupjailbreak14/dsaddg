@@ -101,9 +101,7 @@ module.exports = {
     async run(client, interaction) {
 
 
-        await interaction.deferReply({
-            ephemeral: true
-        });
+        await interaction.deferReply();
 
 
 
@@ -163,24 +161,26 @@ module.exports = {
 
 
 
-        if (cooldown.uses >= 2) {
+    if (
+        cooldown.uses >= 2 &&
+        interaction.user.id !== process.env.OWNER_ID
+    ) {
 
+        return interaction.editReply(
+    `❌ Global DM limit reached.
 
-            return interaction.editReply(
-`❌ Global DM limit reached.
+    This command can only be used 2 times per week.
 
-This command can only be used 2 times per week.
+    Used:
+    ${cooldown.uses}/2
 
-Used:
-${cooldown.uses}/2
+    Reset:
+    <t:${Math.floor(
+    cooldown.resetAt.getTime() / 1000
+    )}:R>`
+        );
 
-Reset:
-<t:${Math.floor(
-cooldown.resetAt.getTime() / 1000
-)}:R>`
-            );
-
-        }
+    }
 
 
 
@@ -326,11 +326,11 @@ cooldown.resetAt.getTime() / 1000
 
 
                 await user.send(
-        `# ${header}
+                `# ${header}
 
-        -# Message directed by ${interaction.user.username}
+                -# Message directed by ${interaction.user.username}
 
-        ${content}`
+                ${content}`
                 );
 
 
@@ -403,9 +403,9 @@ cooldown.resetAt.getTime() / 1000
         <t:${Math.floor(
         cooldown.resetAt.getTime() / 1000
         )}:R>`
-        );
+                );
 
 
-        }
+            }
 
         };
