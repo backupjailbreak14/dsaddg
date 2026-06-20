@@ -63,7 +63,7 @@ function loadCommands(dir) {
 
 
 loadCommands(
-    path.join(__dirname, "commands")
+    path.join(__dirname, "commands", "slash")
 );
 
 

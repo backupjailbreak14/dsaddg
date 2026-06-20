@@ -1,87 +1,209 @@
 const {
-  SlashCommandBuilder,
-  PermissionsBitField
+    SlashCommandBuilder
 } = require("discord.js");
 
 
 module.exports = {
 
-  name: "dm",
+    data: new SlashCommandBuilder()
+        .setName("dm")
+        .setDescription("Send a direct message to users or roles")
 
-  slash: new SlashCommandBuilder()
-      .setName("dm")
-      .setDescription("Send a DM to a user.")
+        .addStringOption(option =>
+            option
+                .setName("header")
+                .setDescription("Message header")
+                .setRequired(true)
+        )
 
-      .addUserOption(option =>
-          option
-              .setName("user")
-              .setDescription("User to DM")
-              .setRequired(true)
-      )
+        .addStringOption(option =>
+            option
+                .setName("message")
+                .setDescription("Message content")
+                .setRequired(true)
+        )
 
-      .addStringOption(option =>
-          option
-              .setName("message")
-              .setDescription("Message to send")
-              .setRequired(true)
-      ),
+        .addUserOption(option =>
+            option
+                .setName("user1")
+                .setDescription("First user")
+        )
 
+        .addUserOption(option =>
+            option
+                .setName("user2")
+                .setDescription("Second user")
+        )
 
-  run: async (client, interaction) => {
-
-
-      if (
-          !interaction.member.permissions.has(
-              PermissionsBitField.Flags.ManageMessages
-          )
-      ) {
-
-          return interaction.reply({
-              content:
-                  "❌ You need Manage Messages permission.",
-              ephemeral: true
-          });
-
-      }
+        .addRoleOption(option =>
+            option
+                .setName("role")
+                .setDescription("Role to DM")
+        ),
 
 
-      const user =
-          interaction.options.getUser("user");
+    async run(client, interaction) {
 
 
-      const message =
-          interaction.options.getString("message");
+        await interaction.deferReply({
+            ephemeral: true
+        });
+
+
+        const header =
+            interaction.options.getString("header");
+
+
+        const content =
+            interaction.options.getString("message");
+
+
+        let users = [];
+
+
+        // USERS
+        const user1 =
+            interaction.options.getUser("user1");
+
+        const user2 =
+            interaction.options.getUser("user2");
+
+
+        if (user1)
+            users.push(user1);
+
+
+        if (user2)
+            users.push(user2);
 
 
 
-      try {
-
-          await user.send(
-              `📩 **Message from ${interaction.user.tag}:**\n\n${message}`
-          );
+        // ROLE
+        const role =
+            interaction.options.getRole("role");
 
 
-          return interaction.reply({
-              content:
-                  `✅ DM sent successfully!\n\n` +
-                  `Recipient: ${user.tag}`,
-              ephemeral:true
-          });
+        if (role) {
 
 
-      } catch(err) {
+            const members =
+                await interaction.guild.members.fetch();
 
 
-          return interaction.reply({
-              content:
-                  `❌ Could not DM ${user.tag}.\n` +
-                  `They may have DMs disabled.`,
-              ephemeral:true
-          });
+            const roleMembers =
+                members.filter(member =>
+                    member.roles.cache.has(role.id)
+                );
 
 
-      }
+            if (roleMembers.size > 30) {
 
-  }
+                return interaction.editReply(
+                    "❌ This role contains more than 30 members."
+                );
+
+            }
+
+
+            roleMembers.forEach(member => {
+
+                users.push(member.user);
+
+            });
+
+        }
+
+
+
+        // remove duplicates
+
+        users =
+            [...new Map(
+                users.map(user =>
+                    [user.id,user]
+                )
+            ).values()];
+
+
+
+        if (users.length === 0) {
+
+            return interaction.editReply(
+                "❌ No users selected."
+            );
+
+        }
+
+
+
+        if (users.length > 30) {
+
+            return interaction.editReply(
+                "❌ Total recipients cannot exceed 30 users."
+            );
+
+        }
+
+
+
+        let success = 0;
+        let failed = 0;
+
+
+
+        for (const user of users) {
+
+
+            try {
+
+
+                await user.send(
+`# ${header}
+
+-# Message directed by ${interaction.user.username}
+
+${content}`
+                );
+
+
+                success++;
+
+
+            } catch(err) {
+
+
+                failed++;
+
+
+            }
+
+
+            // 10-15 second delay
+
+            await new Promise(resolve =>
+                setTimeout(
+                    resolve,
+                    Math.floor(
+                        Math.random()*5000
+                    ) + 10000
+                )
+            );
+
+        }
+
+
+
+        return interaction.editReply(
+`✅ Message sent.
+
+Recipients: ${users.length}
+Successful: ${success}
+Failed: ${failed}
+
+Header: ${header}`
+        );
+
+
+    }
 
 };
