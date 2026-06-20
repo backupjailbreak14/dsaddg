@@ -30,10 +30,42 @@ module.exports = {
             process.env.ownerID
         ) {
 
-            return interaction.reply({
-                content:
-                    "❌ Only the bot owner can reset the DM cooldown.",
-                ephemeral: false
+            const embed = new EmbedBuilder()
+
+                .setTitle("🔄 Global DM Cooldown Reset")
+
+                .setDescription(
+            `The global DM cooldown has been reset successfully.`
+                )
+
+                .addFields(
+                    {
+                        name: "Reset by",
+                        value: `${interaction.user} (${interaction.user.id})`
+                    },
+                    {
+                        name: "New Usage",
+                        value: "0/2"
+                    },
+                    {
+                        name: "Next Reset",
+                        value:
+            `<t:${Math.floor(
+            cooldown.resetAt.getTime() / 1000
+            )}:R>`
+                    }
+                )
+                .setColor("#D4AF37")
+                .setFooter({
+                    text: "USSR Management",
+                    iconURL: interaction.client.user.displayAvatarURL()
+                })
+
+                .setTimestamp();
+
+
+            return interaction.editReply({
+                embeds: [embed]
             });
 
         }

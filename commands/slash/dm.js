@@ -6,7 +6,7 @@ const {
 const DmCooldown =
     require("../../models/DmCooldown");
 
-
+const DmLog = require("../../models/DmLog");
 module.exports = {
 
     data: new SlashCommandBuilder()
@@ -363,7 +363,33 @@ ${content}`
             );
 
         }
+        
+        await DmLog.create({
 
+            commandUser: {
+                id: interaction.user.id,
+                username: interaction.user.username
+            },
+
+            recipients: users.map(user => ({
+                id: user.id,
+                username: user.username
+            })),
+
+            role: role ? {
+                id: role.id,
+                name: role.name
+            } : null,
+
+            message: content,
+
+            header: header,
+
+            successful: success,
+
+            failed: failed
+
+        });
 
 
         // ----------------------
@@ -375,39 +401,69 @@ ${content}`
 
 
 
+        const recipientList = [];
+
+        if (role) {
+            recipientList.push(`Role: ${role}`);
+        }
+
+        const individualUsers = users.filter(
+            user => !role || !interaction.guild.members.cache
+                .get(user.id)
+                ?.roles.cache.has(role.id)
+        );
+
+        if (individualUsers.length > 0) {
+            recipientList.push(
+                "Users:\n" +
+                individualUsers.map(user => `${user}`).join("\n")
+            );
+        }
+
         const embed = new EmbedBuilder()
 
             .setTitle("✅ DM Sent Successfully")
 
-            .setDescription(
-        `**Recipients**
-        ${users.length}
-
-        **Successful**
-        ${success}
-
-        **Failed**
-        ${failed}`
-            )
+            .setColor("#8B0000")
 
             .addFields(
                 {
+                    name: "Sent by",
+                    value: `${interaction.user} (${interaction.user.id})`,
+                    inline: false
+                },
+                {
+                    name: "Recipients",
+                    value: recipientList.join("\n\n").substring(0, 1024),
+                    inline: false
+                },
+                {
+                    name: "Statistics",
+                    value:
+        `Total: **${users.length}**
+        Successful: **${success}**
+        Failed: **${failed}**`,
+                    inline: false
+                },
+                {
                     name: "Message",
-                    value: content.length > 1024
+                    value:
+                        content.length > 1024
                         ? content.substring(0, 1021) + "..."
-                        : content
+                        : content,
+                    inline: false
                 },
                 {
                     name: "Global DM Cooldown",
                     value:
         `Used: **${cooldown.uses}/2**
-
         Remaining: **${remaining} use(s)**
 
         Reset:
         <t:${Math.floor(
         cooldown.resetAt.getTime() / 1000
-        )}:R>`
+        )}:R>`,
+                    inline: false
                 }
             )
 
