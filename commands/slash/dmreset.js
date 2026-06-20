@@ -18,7 +18,6 @@ module.exports = {
         ),
 
 
-
     async run(client, interaction) {
 
 
@@ -31,50 +30,17 @@ module.exports = {
             process.env.ownerID
         ) {
 
-            const embed = new EmbedBuilder()
-
-                .setTitle("🔄 Global DM Cooldown Reset")
-
-                .setDescription(
-            `The global DM cooldown has been reset successfully.`
-                )
-
-                .addFields(
-                    {
-                        name: "Reset by",
-                        value: `${interaction.user} (${interaction.user.id})`
-                    },
-                    {
-                        name: "New Usage",
-                        value: "0/2"
-                    },
-                    {
-                        name: "Next Reset",
-                        value:
-            `<t:${Math.floor(
-            cooldown.resetAt.getTime() / 1000
-            )}:R>`
-                    }
-                )
-                .setColor("#D4AF37")
-                .setFooter({
-                    text: "USSR Management",
-                    iconURL: interaction.client.user.displayAvatarURL()
-                })
-
-                .setTimestamp();
-
-
-            return interaction.editReply({
-                embeds: [embed]
+            return interaction.reply({
+                content:
+                    "❌ Only the bot owner can use this command.",
+                ephemeral: true
             });
 
         }
 
 
-
         // ----------------------
-        // RESET COOLDOWN
+        // GET COOLDOWN
         // ----------------------
 
         let cooldown =
@@ -83,22 +49,32 @@ module.exports = {
             });
 
 
-
         if (!cooldown) {
 
+            cooldown =
+                await DmCooldown.create({
 
-            return interaction.reply({
-                content:
-                    "ℹ️ No cooldown exists.",
-                ephemeral: true
-            });
+                    name: "global",
+
+                    uses: 0,
+
+                    resetAt:
+                        new Date(
+                            Date.now()
+                            +
+                            7 * 24 * 60 * 60 * 1000
+                        )
+
+                });
 
         }
 
 
+        // ----------------------
+        // RESET COOLDOWN
+        // ----------------------
 
         cooldown.uses = 0;
-
 
         cooldown.resetAt =
             new Date(
@@ -107,23 +83,52 @@ module.exports = {
                 7 * 24 * 60 * 60 * 1000
             );
 
-
-
         await cooldown.save();
 
 
+        // ----------------------
+        // EMBED
+        // ----------------------
 
-        return interaction.reply(
-`✅ Global DM cooldown has been reset.
+        const embed = new EmbedBuilder()
 
-Used:
-${cooldown.uses}/2
+            .setTitle(
+                "🔄 Global DM Cooldown Reset"
+            )
 
-Next reset:
-<t:${Math.floor(
+            .setColor("#D4AF37")
+
+            .addFields(
+                {
+                    name: "Reset By",
+                    value:
+                        `${interaction.user} (${interaction.user.id})`
+                },
+                {
+                    name: "New Usage",
+                    value: "0/2"
+                },
+                {
+                    name: "Next Reset",
+                    value:
+`<t:${Math.floor(
 cooldown.resetAt.getTime() / 1000
 )}:R>`
-        );
+                }
+            )
+
+            .setFooter({
+                text: "USSR Management",
+                iconURL:
+                    interaction.client.user.displayAvatarURL()
+            })
+
+            .setTimestamp();
+
+
+        return interaction.reply({
+            embeds: [embed]
+        });
 
 
     }
