@@ -282,6 +282,20 @@ module.exports = {
                 ).values()
             ];
 
+        if (users.length > 30) {
+
+            return interaction.editReply(
+                `❌ Maximum recipients exceeded.
+
+        Maximum allowed:
+        30
+
+        Selected:
+        ${users.length}`
+            );
+
+        }
+
 
 
         // ----------------------
