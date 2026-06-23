@@ -276,7 +276,6 @@ ${targetId}
 **Total Awards**
 ${data.medals.length}
 
-
 ${pages[page]}
 `
 
