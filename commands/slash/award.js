@@ -523,20 +523,17 @@ module.exports = {
 
 
                     {
-
-                        name:
-                            "Awards",
-
+                        name: "Awards",
 
                         value:
-
                             awards
                                 .map(award =>
-                                    `🏅 ${award}`
+
+                                    `🏅 ${award}
+                    📂 ${getAwardCategory(award)}`
+
                                 )
-                                .join("\n")
-
-
+                                .join("\n\n")
                     },
 
 
