@@ -1,288 +1,269 @@
 const {
-  SlashCommandBuilder,
-  EmbedBuilder,
-  PermissionFlagsBits
+    SlashCommandBuilder,
+    EmbedBuilder,
+    ActionRowBuilder,
+    ButtonBuilder,
+    ButtonStyle,
+    PermissionFlagsBits
 } = require("discord.js");
 
-
-const Medal =
-  require("../../models/Medal");
-
+const Medal = require("../../models/Medal");
 
 
 module.exports = {
 
 
-  data: new SlashCommandBuilder()
+    data: new SlashCommandBuilder()
 
-      .setName("medals")
+        .setName("medals")
 
-      .setDescription(
-          "View medals of a user"
-      )
+        .setDescription(
+            "View medals of a user"
+        )
 
+        .addStringOption(option =>
 
-      .addStringOption(option =>
+            option
 
-          option
-              .setName("user")
-              .setDescription(
-                  "User mention or Discord ID (optional)"
-              )
+                .setName("user")
 
-      ),
+                .setDescription(
+                    "User mention or Discord ID (optional)"
+                )
 
+        ),
 
 
 
 
-  async run(client, interaction) {
+    async run(client, interaction) {
 
 
+        await interaction.deferReply();
 
-      await interaction.deferReply();
 
 
+        const input =
+            interaction.options.getString(
+                "user"
+            );
 
 
 
+        let targetId;
 
-      // =====================
-      // GET TARGET USER
-      // =====================
 
 
-      const input =
+        if (input) {
 
-          interaction.options.getString(
-              "user"
-          );
 
+            if (
 
+                !interaction.member.permissions.has(
+                    PermissionFlagsBits.ManageRoles
+                )
 
-      let targetId;
+                &&
 
+                interaction.user.id !== process.env.OWNER_ID
 
+            ) {
 
 
+                return interaction.editReply(
+                    "❌ You cannot view other users' medals."
+                );
 
-      if (input) {
 
+            }
 
-          // Check permission when viewing others
 
-          if (
 
-              !interaction.member.permissions.has(
-                  PermissionFlagsBits.ManageRoles
-              )
+            targetId =
+                input.replace(
+                    /\D/g,
+                    ""
+                );
 
-              &&
 
-              interaction.user.id !== process.env.OWNER_ID
+        } else {
 
-          ) {
 
+            targetId =
+                interaction.user.id;
 
-              return interaction.editReply(
-                  "❌ You cannot view other users' medals."
-              );
 
+        }
 
-          }
 
 
 
+        const data =
 
+            await Medal.findOne({
 
-          targetId =
+                userId:
+                    targetId
 
-              input.replace(
-                  /\D/g,
-                  ""
-              );
+            });
 
 
 
 
 
-          if (!targetId) {
+        if (!data || data.medals.length === 0) {
 
 
-              return interaction.editReply(
-                  "❌ Invalid user ID."
-              );
+            return interaction.editReply(
+                "❌ This user has no medals."
+            );
 
 
-          }
+        }
 
 
 
-      } else {
 
 
-          targetId =
-              interaction.user.id;
+        let username =
+            data.username || "Unknown";
 
 
-      }
 
 
 
+        // ======================
+        // GROUP BY CATEGORY
+        // ======================
 
 
+        const categories = {};
 
 
-      // =====================
-      // FIND MEDALS
-      // =====================
 
+        for (const medal of data.medals) {
 
-      const data =
 
-          await Medal.findOne({
+            const category =
 
-              userId:
-                  targetId
+                medal.category ||
+                "other";
 
-          });
 
 
+            if (!categories[category]) {
 
+                categories[category] = [];
 
+            }
 
 
 
-      if (!data || data.medals.length === 0) {
+            categories[category].push(
+                medal.name
+            );
 
 
-          return interaction.editReply(
-              "❌ This user has no medals."
-          );
+        }
 
 
-      }
 
 
 
 
+        const pages = [];
 
 
 
-      // =====================
-      // USERNAME
-      // =====================
+        let current = "";
 
 
-      let username =
-          data.username;
 
+        for (const category of Object.keys(categories)) {
 
 
 
+            let text =
 
-      if (!username) {
-
-
-          try {
-
-
-              const user =
-                  await client.users.fetch(
-                      targetId
-                  );
-
-
-              username =
-                  user.username;
-
-
-
-          } catch {
-
-
-              username =
-                  "Unknown User";
-
-
-          }
-
-
-      }
-
-
-
-
-
-
-
-
-      // =====================
-      // BUILD MEDAL LIST
-      // =====================
-
-
-      const medalText =
-
-          data.medals
-
-              .map(medal => {
-
-
-                  let text =
 `
-🏅 **${medal.name}**
+🏅 **${category.toUpperCase()}**
 
-Category:
-${medal.category || "Unknown"}
-
-Reason:
-${medal.reason || "No reason provided"}
-
-Awarded by:
-${medal.awardedBy?.username || "Unknown"}
-
-Date:
-<t:${Math.floor(
-  new Date(
-      medal.awardedAt
-  ).getTime() / 1000
-)}:d>
 `;
 
 
-                  return text;
+
+            for (const award of categories[category]) {
 
 
-              })
-
-              .join("\n");
-
+                text +=
+`• ${award}\n`;
 
 
-
-
-
-
-      const embed =
-
-          new EmbedBuilder()
+            }
 
 
 
-              .setTitle(
-                  "🏅 Medal Record"
-              )
+            if (
+
+                (current + text).length > 3500
+
+            ) {
+
+
+                pages.push(current);
+
+                current = text;
+
+
+            } else {
+
+
+                current += text;
+
+
+            }
 
 
 
-              .setColor(
-                  "#D4AF37"
-              )
+        }
 
 
 
-              .setDescription(
+        if (current) {
+
+            pages.push(current);
+
+        }
+
+
+
+
+
+
+        let page = 0;
+
+
+
+
+
+        function createEmbed() {
+
+
+            return new EmbedBuilder()
+
+
+                .setTitle(
+                    "🏅 Medal Record"
+                )
+
+
+                .setColor(
+                    "#D4AF37"
+                )
+
+
+                .setDescription(
+
 `
 **User**
 ${username}
@@ -290,70 +271,218 @@ ${username}
 **User ID**
 ${targetId}
 
-**Total Medals**
+**Total Awards**
 ${data.medals.length}
+
+
+${pages[page]}
 `
-              )
+
+                )
+
+
+                .setFooter({
+
+                    text:
+                    `Page ${page + 1}/${pages.length} • USSR Management`,
+
+                    iconURL:
+                    client.user.displayAvatarURL()
+
+                })
+
+
+                .setTimestamp();
 
 
 
-              .addFields({
-
-                  name:
-                      "Awards",
-
-                  value:
-
-                      medalText.length > 1024
-
-                      ?
-
-                      medalText.substring(
-                          0,
-                          1021
-                      ) + "..."
-
-                      :
-
-                      medalText
-
-
-              })
-
-
-
-              .setFooter({
-
-                  text:
-                      "USSR Management",
-
-                  iconURL:
-                      client.user.displayAvatarURL()
-
-              })
-
-
-
-              .setTimestamp();
+        }
 
 
 
 
 
 
-
-      return interaction.editReply({
-
-          embeds:
-              [
-                  embed
-              ]
-
-      });
+        function buttons() {
 
 
+            return new ActionRowBuilder()
 
-  }
+                .addComponents(
+
+
+                    new ButtonBuilder()
+
+                        .setCustomId(
+                            "previous"
+                        )
+
+                        .setEmoji(
+                            "◀️"
+                        )
+
+                        .setStyle(
+                            ButtonStyle.Secondary
+                        )
+
+                        .setDisabled(
+                            page === 0
+                        ),
+
+
+
+                    new ButtonBuilder()
+
+                        .setCustomId(
+                            "next"
+                        )
+
+                        .setEmoji(
+                            "▶️"
+                        )
+
+                        .setStyle(
+                            ButtonStyle.Secondary
+                        )
+
+                        .setDisabled(
+                            page === pages.length - 1
+                        )
+
+                );
+
+
+        }
+
+
+
+
+
+
+        const message =
+
+            await interaction.editReply({
+
+                embeds:
+                [
+                    createEmbed()
+                ],
+
+                components:
+
+                pages.length > 1
+                ?
+                [
+                    buttons()
+                ]
+
+                :
+
+                []
+
+            });
+
+
+
+
+
+
+
+        if (pages.length <= 1)
+            return;
+
+
+
+
+
+
+
+        const collector =
+
+            message.createMessageComponentCollector({
+
+                time:
+                120000
+
+            });
+
+
+
+
+
+
+        collector.on(
+            "collect",
+            async i => {
+
+
+                if (
+
+                    i.user.id !== interaction.user.id
+
+                ) {
+
+
+                    return i.reply({
+
+                        content:
+                        "❌ This menu is not for you.",
+
+                        ephemeral:true
+
+                    });
+
+
+                }
+
+
+
+
+
+                if (i.customId === "next") {
+
+
+                    page++;
+
+
+                }
+
+
+                if (i.customId === "previous") {
+
+
+                    page--;
+
+
+                }
+
+
+
+
+
+                await i.update({
+
+                    embeds:
+                    [
+                        createEmbed()
+                    ],
+
+                    components:
+                    [
+                        buttons()
+                    ]
+
+                });
+
+
+            }
+
+        );
+
+
+
+
+    }
 
 
 };

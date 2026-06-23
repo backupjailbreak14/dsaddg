@@ -1,96 +1,97 @@
 const {
-  SlashCommandBuilder,
-  EmbedBuilder
+    SlashCommandBuilder,
+    EmbedBuilder
 } = require("discord.js");
 
 
 const Medal =
-  require("../../models/Medal");
+    require("../../models/Medal");
 
 
 
 module.exports = {
 
 
-  data: new SlashCommandBuilder()
+    data: new SlashCommandBuilder()
 
-      .setName("medalleaderboard")
+        .setName("medalleaderboard")
 
-      .setDescription(
-          "View the medal leaderboard"
-      ),
+        .setDescription(
+            "View the award leaderboard"
+        ),
 
 
 
 
 
-  async run(client, interaction) {
+    async run(client, interaction) {
 
 
+        await interaction.deferReply();
 
-      await interaction.deferReply();
 
 
 
 
 
+        const users =
 
+            await Medal.find({});
 
-      const users =
 
-          await Medal.find({});
 
 
 
 
+        if (!users || users.length === 0) {
 
 
-      if (!users || users.length === 0) {
+            return interaction.editReply(
+                "❌ No awards have been given yet."
+            );
 
 
-          return interaction.editReply(
-              "❌ No medals have been awarded yet."
-          );
+        }
 
 
-      }
 
 
 
 
 
+        const leaderboard =
 
 
-      const leaderboard =
+            users
 
-          users
+                .map(user => ({
 
-              .map(user => ({
 
-                  userId:
-                      user.userId,
+                    userId:
+                        user.userId,
 
 
-                  username:
-                      user.username || "Unknown User",
+                    username:
+                        user.username ||
+                        "Unknown User",
 
 
-                  count:
-                      user.medals.length
+                    count:
+                        user.medals.length
 
-              }))
 
+                }))
 
-              .sort(
 
-                  (a, b) =>
+                .sort(
 
-                      b.count - a.count
+                    (a,b) =>
+                        b.count - a.count
 
-              )
+                )
 
-              .slice(0, 10);
 
+                .slice(0,10);
 
 
 
@@ -99,55 +100,103 @@ module.exports = {
 
 
 
-      const medals = [
+        const ranks = [
 
-          "🥇",
+            "🥇",
 
-          "🥈",
+            "🥈",
 
-          "🥉",
+            "🥉",
 
-          "🏅",
+            "🏅",
 
-          "🏅",
+            "🏅",
 
-          "🏅",
+            "🏅",
 
-          "🏅",
+            "🏅",
 
-          "🏅",
+            "🏅",
 
-          "🏅",
+            "🏅",
 
-          "🏅"
+            "🏅"
 
-      ];
+        ];
 
 
 
 
 
 
-      const description =
 
+        let description = "";
 
-          leaderboard
 
-              .map((user, index) =>
+
+
+
+
+
+        for (
+            let i = 0;
+            i < leaderboard.length;
+            i++
+        ) {
+
+
+
+            const user =
+                leaderboard[i];
+
+
+
+            let display =
+                user.username;
+
+
+
+            try {
+
+
+                const discordUser =
+
+                    await client.users.fetch(
+                        user.userId
+                    );
+
+
+                display =
+                    `<@${discordUser.id}>`;
+
+
+
+            } catch {
+
+
+                display =
+                    user.username;
+
+
+            }
+
+
+
+
+
+
+            description +=
 
 `
-${medals[index]} **${user.username}**
+${ranks[i]} **${display}**
 
-Medals:
-**${user.count}**
+🏅 Awards: **${user.count}**
 
-ID:
-${user.userId}
-`
+`;
 
-              )
 
-              .join("\n");
+
+        }
 
 
 
@@ -155,58 +204,43 @@ ${user.userId}
 
 
 
+        const embed =
 
-
-      const embed =
-
-          new EmbedBuilder()
-
-
-
-              .setTitle(
-                  "🏆 Medal Leaderboard"
-              )
+            new EmbedBuilder()
 
 
 
-              .setColor(
-                  "#D4AF37"
-              )
+                .setTitle(
+                    "🏆 Award Leaderboard"
+                )
 
 
 
-              .setDescription(
-
-                  description.length > 4096
-
-                  ?
-
-                  description.substring(
-                      0,
-                      4093
-                  ) + "..."
-
-                  :
-
-                  description
-
-              )
+                .setColor(
+                    "#D4AF37"
+                )
 
 
 
-              .setFooter({
-
-                  text:
-                      "USSR Management",
-
-                  iconURL:
-                      client.user.displayAvatarURL()
-
-              })
+                .setDescription(
+                    description
+                )
 
 
 
-              .setTimestamp();
+                .setFooter({
+
+                    text:
+                    "USSR Management",
+
+                    iconURL:
+                    client.user.displayAvatarURL()
+
+                })
+
+
+
+                .setTimestamp();
 
 
 
@@ -214,19 +248,18 @@ ${user.userId}
 
 
 
+        return interaction.editReply({
 
-      return interaction.editReply({
+            embeds:
+            [
+                embed
+            ]
 
-          embeds:
-              [
-                  embed
-              ]
-
-      });
-
+        });
 
 
-  }
+
+    }
 
 
 };
