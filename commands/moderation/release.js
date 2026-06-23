@@ -49,25 +49,35 @@ module.exports = {
         const oldRoles = data.roles;
 
         // ------------------------------
-        // REMOVE GULAG ROLE
+        // REMOVE FROM GULAG DATABASE FIRST
+        // IMPORTANT:
+        // Prevents guildMemberUpdate from
+        // restoring the gulag role
         // ------------------------------
-        await target.roles.remove(GULAG_ROLE).catch(() => {});
+        await Gulag.deleteOne({
+            userId: target.id
+        });
+
 
         // ------------------------------
         // RESTORE OLD ROLES
         // ------------------------------
         try {
+
             await target.roles.set(oldRoles);
+
         } catch (err) {
-            console.log("Role restore error:", err);
-            return message.restSend("⚠️ Could not restore some roles (missing permissions?).");
+
+            console.log(
+                "Role restore error:",
+                err
+            );
+
+            return message.restSend(
+                "⚠️ Could not restore some roles (missing permissions?)."
+            );
+
         }
-
-        // REMOVE GULAG ROLE JUST TO BE SAFE
-        await target.roles.remove(GULAG_ROLE).catch(() => {});
-
-        // DELETE FROM DB
-        await Gulag.deleteOne({ userId: target.id });
 
         // ------------------------------
         // EMBED LOG
