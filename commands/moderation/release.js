@@ -29,110 +29,64 @@ module.exports = {
             }
         }
 
-        if (!target) {
-            return message.restSend(
-                "❌ Mention someone or provide a valid user ID."
-            );
-        }
+        if (!target)
+            return message.restSend("❌ Mention someone or provide a valid user ID.");
 
         // ------------------------------
         // ADMIN PROTECT
         // ------------------------------
-        if (
-            target.permissions.has(
-                PermissionsBitField.Flags.Administrator
-            )
-        ) {
-            return message.restSend(
-                "❌ You cannot release an administrator."
-            );
-        }
+        if (target.permissions.has(PermissionsBitField.Flags.Administrator))
+            return message.restSend("❌ You cannot release an administrator.");
 
         // ------------------------------
-        // LOAD GULAG DATA
+        // LOAD FROM MONGODB
         // ------------------------------
-        const data = await Gulag.findOne({
-            userId: target.id
-        });
+        const data = await Gulag.findOne({ userId: target.id });
 
-        if (!data) {
-            return message.restSend(
-                "❌ This user is not in the gulag database."
-            );
-        }
+        if (!data)
+            return message.restSend("❌ This user is not in the gulag database.");
 
         const oldRoles = data.roles;
 
         // ------------------------------
-        // REMOVE FROM DATABASE FIRST
-        // IMPORTANT:
-        // Prevents guildMemberUpdate
-        // from re-applying gulag
+        // REMOVE GULAG ROLE
         // ------------------------------
-        await Gulag.deleteOne({
-            userId: target.id
-        });
+        await target.roles.remove(GULAG_ROLE).catch(() => {});
 
         // ------------------------------
         // RESTORE OLD ROLES
         // ------------------------------
         try {
-
-            await target.roles.set(
-                oldRoles
-            );
-
+            await target.roles.set(oldRoles);
         } catch (err) {
-
-            console.log(
-                "Role restore error:",
-                err
-            );
-
-            return message.restSend(
-                "⚠️ Could not restore some roles (missing permissions?)."
-            );
-
+            console.log("Role restore error:", err);
+            return message.restSend("⚠️ Could not restore some roles (missing permissions?).");
         }
+
+        // REMOVE GULAG ROLE JUST TO BE SAFE
+        await target.roles.remove(GULAG_ROLE).catch(() => {});
+
+        // DELETE FROM DB
+        await Gulag.deleteOne({ userId: target.id });
 
         // ------------------------------
         // EMBED LOG
         // ------------------------------
-        const gulagChannel =
-            message.guild.channels.cache.get(
-                GULAG_CHANNEL
-            );
+        const gulagChannel = message.guild.channels.cache.get(GULAG_CHANNEL);
 
         const embed = new EmbedBuilder()
-
             .setColor("#228b22")
-
-            .setAuthor({
-                name: "User released."
-            })
-
+            .setAuthor({ name: "User released." })
             .setDescription(
                 `**<@${target.id}> has been released from the gulag.**\n` +
                 `May they serve the Soviet Union better this time.`
             )
-
-            .setFooter({
-                text: "Gulag Management",
-                iconURL: FOOTER_ICON
-            })
-
-            .setTimestamp();
+            .setFooter({ text: "Gulag Management", iconURL: FOOTER_ICON });
 
         if (gulagChannel) {
-
-            await gulagChannel.send({
-                embeds: [embed]
-            });
-
+            await gulagChannel.send({ embeds: [embed] });
         }
 
-        return message.restSend(
-            `✅ Released ${target.user.tag} and restored ${oldRoles.length} role(s).`
-        );
+        return;
     }
 };
