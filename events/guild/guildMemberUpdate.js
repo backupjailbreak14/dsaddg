@@ -12,28 +12,36 @@ module.exports = async (client, oldMember, newMember) => {
 
         if (!gulagData) return;
 
-        // Heeft iemand extra rollen gekregen?
-        const roles = newMember.roles.cache.filter(
+        const shouldHaveOnlyGulag = newMember.roles.cache.filter(
             role =>
                 role.id !== newMember.guild.id &&
                 role.id !== GULAG_ROLE
         );
 
-        if (roles.size > 0) {
+        const missingGulag =
+            !newMember.roles.cache.has(
+                GULAG_ROLE
+            );
+
+        if (
+            missingGulag ||
+            shouldHaveOnlyGulag.size > 0
+        ) {
 
             console.log(
-                `🔒 Removing unauthorized roles from ${newMember.user.tag}`
+                `🔒 Re-applying Gulag to ${newMember.user.tag}`
             );
 
             await newMember.roles.set([
                 GULAG_ROLE
             ]);
+
         }
 
     } catch (err) {
 
         console.error(
-            "❌ Gulag role enforcement error:",
+            "❌ Gulag enforcement error:",
             err
         );
 
