@@ -1,6 +1,7 @@
 const {
     SlashCommandBuilder,
-    EmbedBuilder
+    EmbedBuilder,
+    PermissionFlagsBits
 } = require("discord.js");
 
 const DmCooldown =
