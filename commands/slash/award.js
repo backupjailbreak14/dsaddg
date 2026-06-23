@@ -75,26 +75,6 @@ for (let i = 1; i <= 2; i++) {
 
 
 
-// =====================
-// AWARDS (2 MAX)
-// =====================
-
-for (let i = 1; i <= 2; i++) {
-
-    data.addStringOption(option =>
-
-        option
-            .setName(`award${i}`)
-            .setDescription(
-                `Award ${i}`
-            )
-            .setAutocomplete(true)
-
-    );
-
-}
-
-
 
 // =====================
 // REASON
