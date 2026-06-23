@@ -1,6 +1,7 @@
 const {
     SlashCommandBuilder,
-    EmbedBuilder
+    EmbedBuilder,
+    PermissionFlagsBits
 } = require("discord.js");
 
 const DmCooldown =
@@ -12,6 +13,10 @@ module.exports = {
     data: new SlashCommandBuilder()
 
         .setName("dm")
+        
+        .setDefaultMemberPermissions(
+            PermissionFlagsBits.ManageRoles
+        )
 
         .setDescription(
             "Send a direct message to users or roles"
@@ -100,6 +105,24 @@ module.exports = {
 
 
     async run(client, interaction) {
+        if (
+            !interaction.member.permissions.has(
+                PermissionFlagsBits.ManageRoles
+            )
+            &&
+            interaction.user.id !== process.env.ownerID
+        ) {
+
+            return interaction.reply({
+
+                content:
+                    "❌ You need the **Manage Roles** permission to use this command.",
+
+                ephemeral: true
+
+            });
+
+        }
 
 
         await interaction.deferReply();
@@ -164,7 +187,7 @@ module.exports = {
 
     if (
         cooldown.uses >= 2 &&
-        interaction.user.id !== process.env.OWNER_ID
+        interaction.user.id !== process.env.ownerID
     ) {
 
         return interaction.editReply(

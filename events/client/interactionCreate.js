@@ -8,6 +8,74 @@ const {
     module.exports = async (client, interaction) => {
 
 
+        // ================================
+        // AUTOCOMPLETE HANDLER
+        // ================================
+
+        if (interaction.isAutocomplete()) {
+
+
+            const awards =
+                require("../../utils/awards");
+
+
+
+            const command =
+                interaction.commandName;
+
+
+
+            // Only handle award-related commands
+
+            if (
+                command !== "award" &&
+                command !== "removemedal"
+            ) {
+                return;
+            }
+
+
+
+            const focused =
+                interaction.options.getFocused();
+
+
+
+            const allAwards =
+                Object.values(awards)
+                    .flat();
+
+
+
+            const filtered =
+                allAwards
+                    .filter(award =>
+
+                        award
+                            .toLowerCase()
+                            .includes(
+                                focused.toLowerCase()
+                            )
+
+                    )
+                    .slice(0, 25);
+
+
+
+            return interaction.respond(
+
+                filtered.map(award => ({
+
+                    name: award,
+
+                    value: award
+
+                }))
+
+            );
+
+        }
+
     // SLASH COMMANDS
 
         if (interaction.isChatInputCommand()) {

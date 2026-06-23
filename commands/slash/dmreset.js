@@ -12,6 +12,10 @@ module.exports = {
     data: new SlashCommandBuilder()
 
         .setName("dmreset")
+        
+        .setDefaultMemberPermissions(
+            PermissionFlagsBits.ManageRoles
+        )
 
         .setDescription(
             "Reset the global DM cooldown"
