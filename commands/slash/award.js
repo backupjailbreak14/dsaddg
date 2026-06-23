@@ -29,31 +29,57 @@ const data =
 
 
 
-// =====================
-// USERS (30 MAX)
-// =====================
+// Add 22 users
 
-for (let i = 1; i <= 30; i++) {
+for (let i = 1; i <= 22; i++) {
+
 
     data.addStringOption(option =>
 
         option
+
             .setName(`user${i}`)
+
             .setDescription(
                 `User mention or Discord ID ${i}`
             )
 
     );
 
+
+}
+
+
+
+// Add 2 awards
+
+for (let i = 1; i <= 2; i++) {
+
+
+    data.addStringOption(option =>
+
+        option
+
+            .setName(`award${i}`)
+
+            .setDescription(
+                `Award ${i}`
+            )
+
+            .setAutocomplete(true)
+
+    );
+
+
 }
 
 
 
 // =====================
-// AWARDS (5 MAX)
+// AWARDS (2 MAX)
 // =====================
 
-for (let i = 1; i <= 5; i++) {
+for (let i = 1; i <= 2; i++) {
 
     data.addStringOption(option =>
 
@@ -141,7 +167,7 @@ module.exports = {
 
 
 
-        for (let i = 1; i <= 30; i++) {
+        for (let i = 1; i <= 22; i++) {
 
 
             const input =
@@ -264,7 +290,7 @@ module.exports = {
 
 
 
-        for (let i = 1; i <= 5; i++) {
+        for (let i = 1; i <= 2; i++) {
 
 
             const award =
