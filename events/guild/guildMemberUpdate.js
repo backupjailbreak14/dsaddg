@@ -1,8 +1,12 @@
 const Gulag = require("../../models/Gulag");
 
 const GULAG_ROLE = "1155599155343925298";
+const gulagRelease = require("../../utils/gulagRelease");
 
 module.exports = async (client, oldMember, newMember) => {
+    if (gulagRelease.has(newMember.id)) {
+        return;
+    }
 
     try {
 

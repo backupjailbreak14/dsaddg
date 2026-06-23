@@ -1,5 +1,6 @@
 const { EmbedBuilder, PermissionsBitField } = require("discord.js");
 const Gulag = require("../../models/Gulag");
+const gulagRelease = require("../../utils/gulagRelease");
 
 // IDs
 const GULAG_ROLE = "1155599155343925298";
@@ -46,7 +47,9 @@ module.exports = {
         if (!data)
             return message.restSend("❌ This user is not in the gulag database.");
 
-        const oldRoles = data.roles;
+        const oldRoles = data.roles.filter(
+            role => role !== GULAG_ROLE
+        );
 
         // ------------------------------
         // REMOVE FROM GULAG DATABASE FIRST
@@ -54,6 +57,8 @@ module.exports = {
         // Prevents guildMemberUpdate from
         // restoring the gulag role
         // ------------------------------
+        gulagRelease.add(target.id);
+
         await Gulag.deleteOne({
             userId: target.id
         });
@@ -66,12 +71,14 @@ module.exports = {
 
             await target.roles.set(oldRoles);
 
-        } catch (err) {
+        catch (err) {
 
             console.log(
                 "Role restore error:",
                 err
             );
+
+            gulagRelease.delete(target.id);
 
             return message.restSend(
                 "⚠️ Could not restore some roles (missing permissions?)."
@@ -96,6 +103,10 @@ module.exports = {
         if (gulagChannel) {
             await gulagChannel.send({ embeds: [embed] });
         }
+
+        setTimeout(() => {
+            gulagRelease.delete(target.id);
+        }, 5000);
 
         return;
     }
