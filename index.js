@@ -293,6 +293,9 @@ const pingResponses = new Map([
       content: "",
       files: [
         "https://raw.githubusercontent.com/backupjailbreak14/dsaddg/main/assets/images/stalin.gif"
+      ],
+      ignoreUsers: [
+        process.env.ownerID
       ]
     }
   ]
