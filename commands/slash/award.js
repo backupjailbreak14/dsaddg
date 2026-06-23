@@ -12,7 +12,8 @@ const Medal =
 const getAwardCategory =
     require("../../utils/getAwardCategory");
 
-
+const awardEmojis =
+    require("../../utils/awardEmojis");
 
 const data =
     new SlashCommandBuilder()
@@ -526,11 +527,12 @@ module.exports = {
                         name: "Awards",
 
                         value:
+
                             awards
                                 .map(award =>
 
-                                    `🏅 ${award}
-                    📂 ${getAwardCategory(award)}`
+                                    `${awardEmojis[award] || "🏅"} ${award}
+                    📂 Category: ${getAwardCategory(award)}`
 
                                 )
                                 .join("\n\n")

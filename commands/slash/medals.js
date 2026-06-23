@@ -9,6 +9,8 @@ const {
 
 const Medal = require("../../models/Medal");
 
+const awardEmojis =
+    require("../../utils/awardEmojis");
 
 module.exports = {
 
@@ -196,7 +198,7 @@ module.exports = {
 
 
                 text +=
-`• ${award}\n`;
+                `${awardEmojis[award] || "🏅"} ${award}\n`;
 
 
             }
