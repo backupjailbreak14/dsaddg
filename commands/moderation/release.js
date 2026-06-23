@@ -71,7 +71,7 @@ module.exports = {
 
             await target.roles.set(oldRoles);
 
-        catch (err) {
+        } catch (err) {
 
             console.log(
                 "Role restore error:",
