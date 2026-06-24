@@ -6,7 +6,13 @@ module.exports = (client) => {
 	const load = (dir) => {
 		// Build correct path: /events/client or /events/guild
 		const folderPath = path.join(__dirname, "..", "events", dir);
+		const filePath = path.join(folderPath, file);
+		const evt = require(filePath);
 
+		console.log(`✔ Loaded event: ${dir}/${eventName}`);
+		console.log(`Binding event: ${eventName}`);
+
+		client.on(eventName, evt.bind(null, client));
 		console.log("➡ Loading events for:", dir);
 		console.log("➡ folderPath =", folderPath);
 		console.log("➡ exists =", existsSync(folderPath));
