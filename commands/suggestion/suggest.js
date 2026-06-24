@@ -153,12 +153,14 @@ module.exports = {
 
 
 
-        await channel.send({
-            embeds:
-            [
-                embed
-            ]
-        });
+      const sentMessage = await channel.send({
+        embeds: [embed]
+      });
+
+
+      suggestion.messageId = sentMessage.id;
+
+      await suggestion.save();
 
 
 

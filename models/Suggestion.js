@@ -2,42 +2,27 @@ const mongoose = require("mongoose");
 
 const suggestionSchema = new mongoose.Schema({
 
-    guildId: {
-        type: String,
-        required: true
-    },
+    guildId: String,
 
-    id: {
-        type: String,
-        required: true
-    },
+    id: String,
 
-    author: {
-        type: String,
-        required: true
-    },
+    messageId: String,
 
-    text: {
-        type: String,
-        required: true
-    },
+    author: String,
+
+    text: String,
 
     status: {
         type: String,
         default: "pending"
     },
 
-    reply: {
-        type: String,
-        default: null
-    },
+    reply: String,
 
-    staff: {
-        type: String,
-        default: null
-    }
+    staff: String
 
 });
+
 
 module.exports = mongoose.model(
     "Suggestion",
