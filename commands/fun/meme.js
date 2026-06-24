@@ -171,9 +171,9 @@ module.exports = {
         const collector =
             msg.createMessageComponentCollector({
 
-                time: 20000,
+                time: 60000,
 
-                max: 3
+                max: 20
 
             });
 
