@@ -11,7 +11,7 @@ const FOOTER_ICON =
 const LOG_CHANNEL =
     "1494009494152155207";
 
-module.exports = async (client, member) => {
+module.exports = async (_client, member) => {
 
     console.log(
         `🚨 guildMemberRemove fired for ${member.user.tag} (${member.id})`
