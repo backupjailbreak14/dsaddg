@@ -242,10 +242,7 @@ module.exports = [
   {
     username: "pisciopatico",
     awards: [
-      {
-        name: "Medal 'For Battle Merit'",
-        count: 1
-      }
+      "Medal 'For Battle Merit'"
     ]
   },
 

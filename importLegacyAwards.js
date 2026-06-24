@@ -236,17 +236,11 @@ async function run() {
 
 
 
-                    // Alleen verhogen als de legacy data hoger is
+                    // 
 
-                    if (
-                        awardCount >
-                        existingMedal.count
-                    ) {
+                    if (awardCount > (existingMedal.count || 1)) {
 
-
-                        existingMedal.count =
-                            awardCount;
-
+                        existingMedal.count = awardCount;
 
                     }
 

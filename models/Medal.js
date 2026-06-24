@@ -28,7 +28,8 @@ const MedalSchema = new mongoose.Schema({
 
             count: {
                 type: Number,
-                default: 1
+                default: 1,
+                min: 1
             },
 
 
