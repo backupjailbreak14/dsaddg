@@ -17,7 +17,8 @@ async function getRandomMeme(category) {
 
 
     const subreddit =
-        category || subReddits[
+        category ||
+        subReddits[
             Math.floor(Math.random() * subReddits.length)
         ];
 
@@ -29,13 +30,16 @@ async function getRandomMeme(category) {
         );
 
 
-        const data = await response.json();
+        const data =
+            await response.json();
 
 
-        if (!data.success || !data.postLink || !data.url) {
+        if (!data || !data.url) {
 
             return new EmbedBuilder()
+
                 .setColor("#ff0000")
+
                 .setDescription(
                     "❌ Failed to fetch meme."
                 );
@@ -43,11 +47,12 @@ async function getRandomMeme(category) {
         }
 
 
-
         if (data.nsfw) {
 
             return new EmbedBuilder()
+
                 .setColor("#ff0000")
+
                 .setDescription(
                     "❌ NSFW meme blocked."
                 );
@@ -61,18 +66,32 @@ async function getRandomMeme(category) {
             .setColor("Random")
 
             .setAuthor({
-                name: data.title,
-                url: data.postLink
+
+                name:
+                    data.title,
+
+                url:
+                    data.postLink
+
             })
 
-            .setImage(data.url)
+
+            .setImage(
+                data.url
+            )
+
 
             .setFooter({
-                text: `👍 ${data.ups || 0}`
+
+                text:
+                    `👍 ${data.ups || 0}`
+
             });
 
 
-    } catch (err) {
+
+    } catch(err) {
+
 
         console.error(
             "Meme API error:",
@@ -81,9 +100,11 @@ async function getRandomMeme(category) {
 
 
         return new EmbedBuilder()
+
             .setColor("#ff0000")
+
             .setDescription(
-                "❌ Could not load meme."
+                "❌ Meme API unavailable."
             );
 
     }
