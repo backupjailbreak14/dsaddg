@@ -8,6 +8,7 @@ const {
 const Medal =
     require("../../models/Medal");
 
+const awardEmojis = require("../../utils/awardEmojis");
 
 
 module.exports = {
@@ -326,7 +327,7 @@ module.exports = {
 
                         value:
 
-                            `🏅 ${medalName}`
+                        `${medalEmojis[medalName] || "🏅"} ${medalName}`
 
 
                     },

@@ -1,4 +1,4 @@
-const Suggestion = require("../../models/Suggestion");
+    const Suggestion = require("../../models/Suggestion");
 
 module.exports = {
     name: "reply",
