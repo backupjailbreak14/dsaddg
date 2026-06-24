@@ -161,9 +161,10 @@ module.exports = {
 
 
 
-            categories[category].push(
-                medal.name
-            );
+            categories[category].push({
+                name: medal.name,
+                count: medal.count || 1
+            });
 
 
         }
@@ -197,8 +198,14 @@ module.exports = {
             for (const award of categories[category]) {
 
 
+                const count =
+                    award.count > 1
+                        ? ` x${award.count}`
+                        : "";
+
+
                 text +=
-                `${awardEmojis[award] || "🏅"} ${award}\n`;
+                `${awardEmojis[award.name] || "🏅"} ${award.name}${count}\n`;
 
 
             }
