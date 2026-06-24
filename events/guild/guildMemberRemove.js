@@ -53,7 +53,7 @@ module.exports = async (client, member) => {
                   }
               )
 
-              .setFooter({ text: "Gulag Management", iconURL: FOOTER_ICON });
+              .setFooter({ text: "Gulag Management", iconURL: FOOTER_ICON })
               .setTimestamp();
 
       await channel.send({
