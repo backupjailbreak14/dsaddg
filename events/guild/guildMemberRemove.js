@@ -1,100 +1,96 @@
-const {
-    EmbedBuilder
-} = require("discord.js");
-
-const Gulag =
-    require("../../models/Gulag");
+const { EmbedBuilder } = require("discord.js");
+const Gulag = require("../../models/Gulag");
 
 const FOOTER_ICON =
     "https://cdn.discordapp.com/attachments/853304828386344970/1004445845405577347/USSRRound-1.png";
 
-const LOG_CHANNEL =
-    "1494009494152155207";
+const LOG_CHANNEL = "1494009494152155207";
 
-module.exports = async (_client, member) => {
+module.exports = async (client, member) => {
 
-    console.log(
-        `🚨 guildMemberRemove fired for ${member.user.tag} (${member.id})`
-    );
+    console.log(`👋 MEMBER LEFT: ${member.user.tag} (${member.id})`);
 
     try {
 
-        const gulagData =
-            await Gulag.findOne({
-                userId: member.id
-            });
+        const gulagData = await Gulag.findOne({
+            userId: member.id
+        });
+
 
         console.log(
-            "🔍 Gulag data:",
+            "🔍 Gulag database check:",
             gulagData
         );
 
+
         if (!gulagData) {
-
             console.log(
-                "❌ User not found in Gulag database."
+                "ℹ️ User was not in gulag."
             );
-
             return;
         }
+
 
         const channel =
             member.guild.channels.cache.get(
                 LOG_CHANNEL
             );
 
-        console.log(
-            "📢 Log channel found:",
-            !!channel
-        );
 
         if (!channel) {
 
             console.log(
-                `❌ Log channel ${LOG_CHANNEL} not found.`
+                "❌ Log channel not found"
             );
 
             return;
+
         }
 
-        const embed =
-            new EmbedBuilder()
 
-                .setColor("#8B0000")
+        const embed = new EmbedBuilder()
 
-                .setTitle("🚨 Gulag Escape Attempt")
+            .setColor("#8B0000")
 
-                .setDescription(
-                    `**${member.user.tag}** left the server while in the Gulag.`
-                )
+            .setTitle(
+                "🚨 Gulag Escape Attempt"
+            )
 
-                .addFields(
-                    {
-                        name: "User",
-                        value: `${member.user.tag}`
-                    },
-                    {
-                        name: "User ID",
-                        value: member.id
-                    }
-                )
+            .setDescription(
+                `**${member.user.tag}** left the server while imprisoned in the Gulag.`
+            )
 
-                .setFooter({
-                    text: "Gulag Management",
-                    iconURL: FOOTER_ICON
-                })
+            .addFields(
+                {
+                    name: "User",
+                    value: `<@${member.id}>`
+                },
+                {
+                    name: "User ID",
+                    value: member.id
+                }
+            )
 
-                .setTimestamp();
+            .setFooter({
+                text: "Gulag Management",
+                iconURL: FOOTER_ICON
+            })
+
+            .setTimestamp();
+
+
 
         await channel.send({
             embeds: [embed]
         });
 
+
         console.log(
-            `✅ Gulag leave logged for ${member.user.tag}`
+            "✅ Gulag leave logged"
         );
 
-    } catch (err) {
+
+    } catch(err) {
 
         console.error(
             "❌ Gulag leave log error:",
