@@ -338,9 +338,10 @@ module.exports = {
         // SAVE MEDALS
         // =====================
 
+        let awardedList = [];
+
 
         for (const user of users) {
-
 
 
             let data =
@@ -353,11 +354,7 @@ module.exports = {
 
 
 
-
-
-
             if (!data) {
-
 
                 data =
                     new Medal({
@@ -365,61 +362,63 @@ module.exports = {
                         userId:
                             user.id,
 
-
                         username:
                             user.username,
-
 
                         medals: []
 
                     });
 
-
             }
 
 
-
-
-
-            // Update username
 
             data.username =
                 user.username;
 
 
 
-
-
-
-
             for (const award of awards) {
 
 
-
-                const exists =
-
-                    data.medals.some(
+                const existingMedal =
+                    data.medals.find(
 
                         medal =>
-
                             medal.name === award
 
                     );
 
 
 
+                if (existingMedal) {
+
+
+                    existingMedal.count =
+                        (existingMedal.count || 1) + 1;
 
 
 
-                if (!exists) {
+                    awardedList.push({
 
+                        name: award,
+
+                        count:
+                            existingMedal.count
+
+                    });
+
+
+
+                }
+                else {
 
 
                     data.medals.push({
 
-                        name:
-                            award,
+                        name: award,
 
+                        count: 1,
 
                         category:
                             getAwardCategory(
@@ -427,12 +426,9 @@ module.exports = {
                             ),
 
 
-
                         reason:
-                            reason
-                            ||
+                            reason ||
                             null,
-
 
 
                         awardedBy: {
@@ -450,6 +446,15 @@ module.exports = {
                         awardedAt:
                             new Date()
 
+                    });
+
+
+
+                    awardedList.push({
+
+                        name: award,
+
+                        count: 1
 
                     });
 
@@ -462,10 +467,7 @@ module.exports = {
 
 
 
-
-
             await data.save();
-
 
 
         }
@@ -504,35 +506,19 @@ module.exports = {
 
 
                     {
-
-                        name:
-                            "Recipients",
-
-
-                        value:
-
-                            users
-                                .map(user =>
-                                    `${user.username} (${user.id})`
-                                )
-                                .join("\n")
-                                .slice(0,1024)
-
-
-                    },
-
-
-
-                    {
                         name: "Awards",
 
                         value:
 
-                            awards
+                            awardedList
                                 .map(award =>
 
-                                    `${awardEmojis[award] || "🏅"} ${award}
-                    📂 Category: ${getAwardCategory(award)}`
+                                    `${awardEmojis[award.name] || "🏅"} ${award.name}${
+                                        award.count > 1
+                                            ? ` x${award.count}`
+                                            : ""
+                                    }
+                    📂 Category: ${getAwardCategory(award.name)}`
 
                                 )
                                 .join("\n\n")

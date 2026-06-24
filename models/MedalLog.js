@@ -14,7 +14,12 @@ module.exports = mongoose.model(
             }
         ],
 
-        medals: [String],
+        medals: [
+            {
+                name: String,
+                count: Number
+            }
+        ],
 
         reason: String,
 

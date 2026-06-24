@@ -1,6 +1,6 @@
 module.exports = {
 
-
+// High-level titles (highest prestige categories)
 titles: [
     "Large Marshal's Star",
     "Small Marshal's Star",
@@ -10,6 +10,7 @@ titles: [
     "State Stalin Prize"
 ],
 
+// Orders (state honors and military orders)
 orders: [
     "Order of Victory",
     "Order of the Red Banner",
@@ -25,6 +26,7 @@ orders: [
     "Order of the Badge of Honour"
 ],
 
+// Medals
 medals: [
     'Medal "For Courage"',
     'Medal "For Battle Merit"',
@@ -50,21 +52,24 @@ medals: [
     'Medal "For Valiant Labour in the Great Patriotic War"'
 ],
 
+// Badges
 badges: [
     "Guards Badge",
-    "Excellent Tank Shooting Badge",
-    "Honorable Radio Operator Badge",
-    "Voroshilov Horseman Badge",
-    "Distinguished NKVD Employee Badge",
-    "Excellence in the Red Army Badge",
-    "Excellent WPRA Serviceman Badge",
+    "Excellent Tank Shooting",
+    "Honorable Radio Operator",
+    "Voroshilov Horseman",
+    "Distinguished NKVD Employee",
+    "Excellence in the Red Army",
+    "Excellent WPRA Serviceman",
     "Voroshilov Highest Military Academy of General Staff Graduate",
-    "CPSU Membership Pin"
+    "CPSU Membership Pin",
+    "Komsomol Membership Pin"
 ],
 
+// Not currently used
 ribbons: [],
 
+// Future expansion
 other: []
-
 
 };
