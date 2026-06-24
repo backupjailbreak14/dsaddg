@@ -8,58 +8,41 @@ const LOG_CHANNEL = "1494009494152155207";
 
 module.exports = async (client, member) => {
 
-    console.log(`👋 MEMBER LEFT: ${member.user.tag} (${member.id})`);
+    console.log("🚪 guildMemberRemove fired:", member.id);
 
     try {
 
+        // Check MongoDB
         const gulagData = await Gulag.findOne({
             userId: member.id
         });
 
-
-        console.log(
-            "🔍 Gulag database check:",
-            gulagData
-        );
-
+        console.log("🔍 Gulag data:", gulagData);
 
         if (!gulagData) {
-            console.log(
-                "ℹ️ User was not in gulag."
-            );
+            console.log("❌ User was not in gulag database");
             return;
         }
 
 
-        const channel =
-            member.guild.channels.cache.get(
-                LOG_CHANNEL
-            );
+        // Get channel
+        const channel = member.guild.channels.cache.get(LOG_CHANNEL);
+
+        console.log("📢 Log channel:", channel ? channel.name : "NOT FOUND");
 
 
         if (!channel) {
-
-            console.log(
-                "❌ Log channel not found"
-            );
-
+            console.log("❌ Gulag log channel not found");
             return;
-
         }
 
 
         const embed = new EmbedBuilder()
-
             .setColor("#8B0000")
-
-            .setTitle(
-                "🚨 Gulag Escape Attempt"
-            )
-
+            .setTitle("🚨 Gulag Escape Attempt")
             .setDescription(
-                `**${member.user.tag}** left the server while imprisoned in the Gulag.`
+                `**${member.user.tag}** left the server while still in the Gulag.`
             )
-
             .addFields(
                 {
                     name: "User",
@@ -70,14 +53,11 @@ module.exports = async (client, member) => {
                     value: member.id
                 }
             )
-
             .setFooter({
                 text: "Gulag Management",
                 iconURL: FOOTER_ICON
             })
-
             .setTimestamp();
-
 
 
         await channel.send({
@@ -85,12 +65,10 @@ module.exports = async (client, member) => {
         });
 
 
-        console.log(
-            "✅ Gulag leave logged"
-        );
+        console.log("✅ Gulag leave log sent");
 
 
-    } catch(err) {
+    } catch (err) {
 
         console.error(
             "❌ Gulag leave log error:",
