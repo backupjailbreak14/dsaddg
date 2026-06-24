@@ -126,6 +126,12 @@ client.aliases = new Collection();
 client.cooldowns = new Collection();
 client.snipes = new Collection();
 
+client.on("guildMemberRemove", member => {
+    console.log(
+        `TEST REMOVE: ${member.user.tag} left`
+    );
+});
+
 // ----------------------------------------------------
 // restSend helper
 // ----------------------------------------------------
