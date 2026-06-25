@@ -60,8 +60,7 @@ async function soloMode(interaction) {
                 interaction,
                 stats,
                 score,
-                bestStreak,
-                wrong,
+                bestScore,
                 null
             );
 
@@ -185,7 +184,7 @@ ${question.question}
 
                     await i.update({
 
-                        content: "",
+                        content: "✅ Correct!",
 
                         embeds: [],
 
@@ -197,7 +196,7 @@ ${question.question}
 
                     setTimeout(
                         sendQuestion,
-                        15000
+                        1000
                     );
 
                 } else {
@@ -208,19 +207,11 @@ ${question.question}
                     activeCollector.stop();
 
                     await endSolo(
-
                         interaction,
-
                         stats,
-
                         score,
-
-                        bestStreak,
-
-                        wrong,
-
+                        bestScore,
                         question
-
                     );
 
                 }
