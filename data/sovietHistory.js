@@ -1,3 +1,5 @@
+const sovietAwards = require("./sovietAwards");
+
 module.exports = [
 
 {
@@ -1201,3 +1203,4 @@ module.exports = [
     }
 
     ];
+
