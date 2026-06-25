@@ -12,8 +12,7 @@ const QuizStats = require("../models/QuizStats");
 async function soloMode(interaction) {
 
     let score = 0;
-    let streak = 0;
-    let bestStreak = 0;
+    let bestScore = 0;
 
     let used = new Set();
     let gameOver = false;
@@ -178,20 +177,15 @@ ${question.question}
 
                     score++;
 
-                    streak++;
+                    if (score > bestScore) {
 
-                    if (
-                        streak > bestStreak
-                    ) {
-
-                        bestStreak = streak;
+                        bestScore = score;
 
                     }
 
                     await i.update({
 
-                        content:
-                        "✅ Correct!",
+                        content: "",
 
                         embeds: [],
 
@@ -203,14 +197,11 @@ ${question.question}
 
                     setTimeout(
                         sendQuestion,
-                        1000
+                        15000
                     );
 
                 } else {
 
-                    wrong++;
-
-                    streak = 0;
 
                     gameOver = true;
 
@@ -239,18 +230,12 @@ ${question.question}
 
         activeCollector.on(
             "end",
-            async (collected, reason) => {
+            async (_, reason) => {
 
-                // Player did not answer within the time limit
                 if (
                     reason === "time" &&
-                    collected.size === 0 &&
                     !gameOver
                 ) {
-
-                    wrong++;
-
-                    streak = 0;
 
                     gameOver = true;
 
@@ -269,18 +254,22 @@ ${question.question}
                                 )
 
                                 .setDescription(
-`
-📂 **Category**
-${question.category}
+        `
+        📂 **Category**
+        ${question.category}
 
-❓ **Question**
-${question.question}
+        ❓ **Question**
+        ${question.question}
 
-✅ **Correct answer**
-${question.correctAnswer}
+        ✅ **Correct Answer**
+        ${question.correctAnswer}
 
-You did not answer within **15 seconds**.
-`
+
+        ⭐ Final Score
+        ${score}
+
+        You did not answer within **15 seconds**.
+        `
                                 )
 
                         ],
@@ -289,24 +278,14 @@ You did not answer within **15 seconds**.
 
                     });
 
-                    setTimeout(async () => {
 
-                        await endSolo(
-
-                            interaction,
-
-                            stats,
-
-                            score,
-
-                            bestStreak,
-
-
-                            question
-
-                        );
-
-                    }, 2000);
+                    await endSolo(
+                        interaction,
+                        stats,
+                        score,
+                        bestScore,
+                        question
+                    );
 
                 }
 
@@ -318,82 +297,77 @@ You did not answer within **15 seconds**.
     sendQuestion();
 }
 
-async function endSolo(
-    interaction,
-    stats,
-    score,
-    question
-) {
-
-    stats.gamesPlayed += 1;
-
-    stats.questionsAnswered +=
-        score + wrong;
-
-    stats.correctAnswers +=
-        score;
-
-    stats.wrongAnswers += 1;
-
-    stats.totalPoints +=
-        score;
-
-    if (
-        bestStreak > stats.bestStreak
+    async function endSolo(
+        interaction,
+        stats,
+        score,
+        bestScore,
+        question
     ) {
 
-        stats.bestStreak =
-            bestStreak;
+        stats.gamesPlayed += 1;
+
+        stats.questionsAnswered += score + 1;
+
+        stats.correctAnswers += score;
+
+        stats.wrongAnswers += 1;
+
+        stats.totalPoints += score;
+
+
+        if (
+            bestScore > stats.bestStreak
+        ) {
+
+            stats.bestStreak = bestScore;
+
+        }
+
+
+        stats.lastPlayed = new Date();
+
+
+        await stats.save();
+
+
+        await interaction.editReply({
+
+            embeds: [
+
+                new EmbedBuilder()
+
+                    .setTitle(
+                        "❌ Game Over"
+                    )
+
+                    .setColor(
+                        "Red"
+                    )
+
+                    .setDescription(
+    `
+    📂 **Category**
+    ${question?.category ?? "Unknown"}
+
+    ❓ **Question**
+    ${question?.question ?? "Unknown"}
+
+    ✅ **Correct Answer**
+    ${question?.correctAnswer ?? "Unknown"}
+
+
+    ⭐ Final Score
+    ${score}
+    `
+                    )
+
+            ],
+
+            components: []
+
+        });
 
     }
-
-    stats.lastPlayed =
-        new Date();
-
-    await stats.save();
-
-    await interaction.editReply({
-
-        embeds: [
-
-            new EmbedBuilder()
-
-                .setTitle(
-                    "❌ Game Over"
-                )
-
-                .setColor(
-                    "Red"
-                )
-
-                .setDescription(
-`
-📂 **Category**
-${question?.category ?? "Unknown"}
-
-❓ **Question**
-${question?.question ?? "Unknown"}
-
-✅ **Correct answer**
-${question?.correctAnswer ?? "Unknown"}
-
-⭐ **Final score**
-${score}
-
-🔥 **Best streak**
-${bestStreak}
-
-❌ **Wrong answers**
-${wrong}
-`
-                )
-
-        ],
-
-        components: []
-
-    });
-
-}
 
 module.exports = soloMode;
