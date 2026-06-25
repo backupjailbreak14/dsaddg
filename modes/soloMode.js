@@ -13,16 +13,27 @@ async function soloMode(interaction) {
 
     let score = 0;
     let streak = 0;
+    let bestStreak = 0;
     let wrong = 0;
+
     let used = new Set();
     let gameOver = false;
 
     let activeCollector = null;
 
     let stats = await QuizStats.findOneAndUpdate(
-        { userId: interaction.user.id },
-        { $setOnInsert: { username: interaction.user.username } },
-        { upsert: true, new: true }
+        {
+            userId: interaction.user.id
+        },
+        {
+            $setOnInsert: {
+                username: interaction.user.username
+            }
+        },
+        {
+            upsert: true,
+            new: true
+        }
     );
 
     async function sendQuestion() {
@@ -33,137 +44,362 @@ async function soloMode(interaction) {
         let tries = 0;
 
         do {
+
             raw = getRandomQuestion(used);
+
             tries++;
+
         } while (!raw && tries < 10);
 
         if (!raw) {
+
             gameOver = true;
-            return endSolo(interaction, stats, score, streak, wrong);
+
+            return endSolo(
+                interaction,
+                stats,
+                score,
+                bestStreak,
+                wrong,
+                null
+            );
+
         }
 
         const question = shuffleQuestion(raw);
 
         const row = new ActionRowBuilder();
 
-        question.answers.forEach((a, i) => {
+        question.answers.forEach((answer, index) => {
+
             row.addComponents(
+
                 new ButtonBuilder()
-                    .setCustomId(`solo_${i}`)
-                    .setLabel(a)
-                    .setStyle(ButtonStyle.Primary)
+
+                    .setCustomId(
+                        `solo_${index}`
+                    )
+
+                    .setLabel(answer)
+
+                    .setStyle(
+                        ButtonStyle.Primary
+                    )
+
             );
+
         });
 
         const embed = new EmbedBuilder()
-            .setTitle("🇷🇺 Solo Mode")
-            .setColor("#D4AF37")
+
+            .setTitle(
+                "<:flag_su:1205892640361422891> Soviet Quiz - Solo"
+            )
+
+            .setColor(
+                "#D4AF37"
+            )
+
             .setDescription(
 `
-❓ ${question.question}
+📂 **Category**
+${question.category}
+
+❓ **Question**
+${question.question}
 
 ⭐ Score: ${score}
+
 🔥 Streak: ${streak}
-❌ Wrong: ${wrong}
+
+❌ Mistakes: ${wrong}
+
+⏱️ Time limit: **15 seconds**
 `
             );
 
-        const msg = await interaction.editReply({
-            embeds: [embed],
-            components: [row]
+        const message = await interaction.editReply({
+
+            embeds: [
+                embed
+            ],
+
+            components: [
+                row
+            ]
+
         });
 
-        if (activeCollector) activeCollector.stop();
+        if (activeCollector) {
 
-        activeCollector = msg.createMessageComponentCollector({
-            time: 60000
-        });
+            activeCollector.stop();
 
-        activeCollector.on("collect", async i => {
+        }
 
-            if (i.user.id !== interaction.user.id) {
-                return i.reply({
-                    content: "❌ Not your game",
-                    ephemeral: true
-                });
+        activeCollector =
+            message.createMessageComponentCollector({
+
+                time: 15000
+
+            });
+
+        activeCollector.on(
+            "collect",
+            async i => {
+
+                if (
+                    i.user.id !== interaction.user.id
+                ) {
+
+                    return i.reply({
+
+                        content:
+                        "❌ This is not your quiz.",
+
+                        ephemeral: true
+
+                    });
+
+                }
+
+                const selected =
+                    Number(
+                        i.customId.split("_")[1]
+                    );
+
+                const answer =
+                    question.answers[selected];
+
+                used.add(
+                    question.question
+                );
+
+                if (
+                    answer === question.correctAnswer
+                ) {
+
+                    score++;
+
+                    streak++;
+
+                    if (
+                        streak > bestStreak
+                    ) {
+
+                        bestStreak = streak;
+
+                    }
+
+                    await i.update({
+
+                        content:
+                        "✅ Correct!",
+
+                        embeds: [],
+
+                        components: []
+
+                    });
+
+                    activeCollector.stop();
+
+                    setTimeout(
+                        sendQuestion,
+                        1000
+                    );
+
+                } else {
+
+                    wrong++;
+
+                    streak = 0;
+
+                    gameOver = true;
+
+                    activeCollector.stop();
+
+                    await endSolo(
+
+                        interaction,
+
+                        stats,
+
+                        score,
+
+                        bestStreak,
+
+                        wrong,
+
+                        question
+
+                    );
+
+                }
+
             }
+        );
 
-            const selected = Number(i.customId.split("_")[1]);
-            const answer = question.answers[selected];
+        activeCollector.on(
+            "end",
+            async (collected, reason) => {
 
-            used.add(question.question);
+                // Player did not answer within the time limit
+                if (
+                    reason === "time" &&
+                    collected.size === 0 &&
+                    !gameOver
+                ) {
 
-            const correct = answer === question.correctAnswer;
+                    wrong++;
 
-            if (correct) {
+                    streak = 0;
 
-                score++;
-                streak++;
+                    gameOver = true;
 
-                await i.update({
-                    content: "✅ Correct!",
-                    embeds: [],
-                    components: []
-                });
+                    await interaction.editReply({
 
-                activeCollector.stop();
-                setTimeout(sendQuestion, 1000);
+                        embeds: [
 
-            } else {
+                            new EmbedBuilder()
 
-                wrong++;
-                streak = 0;
+                                .setTitle(
+                                    "⏰ Time's Up"
+                                )
 
-                await i.update({
-                    content: `❌ Wrong! Correct answer: **${question.correctAnswer}**`,
-                    embeds: [],
-                    components: []
-                });
+                                .setColor(
+                                    "Orange"
+                                )
 
-                gameOver = true;
+                                .setDescription(
+`
+📂 **Category**
+${question.category}
 
-                activeCollector.stop();
-                await endSolo(interaction, stats, score, streak, wrong);
+❓ **Question**
+${question.question}
+
+✅ **Correct answer**
+${question.correctAnswer}
+
+You did not answer within **15 seconds**.
+`
+                                )
+
+                        ],
+
+                        components: []
+
+                    });
+
+                    setTimeout(async () => {
+
+                        await endSolo(
+
+                            interaction,
+
+                            stats,
+
+                            score,
+
+                            bestStreak,
+
+                            wrong,
+
+                            question
+
+                        );
+
+                    }, 2000);
+
+                }
+
             }
-        });
+        );
+
     }
 
     sendQuestion();
 }
 
-async function endSolo(interaction, stats, score, streak, wrong) {
+async function endSolo(
+    interaction,
+    stats,
+    score,
+    bestStreak,
+    wrong,
+    question
+) {
 
     stats.gamesPlayed += 1;
 
-    // 🔥 FIXED LOGGING (correct + clean)
-    stats.questionsAnswered += score + wrong;
-    stats.correctAnswers += score;
-    stats.wrongAnswers += wrong;
-    stats.totalPoints += score;
+    stats.questionsAnswered +=
+        score + wrong;
 
-    if (streak > stats.bestStreak) {
-        stats.bestStreak = streak;
+    stats.correctAnswers +=
+        score;
+
+    stats.wrongAnswers +=
+        wrong;
+
+    stats.totalPoints +=
+        score;
+
+    if (
+        bestStreak > stats.bestStreak
+    ) {
+
+        stats.bestStreak =
+            bestStreak;
+
     }
 
-    stats.lastPlayed = new Date();
+    stats.lastPlayed =
+        new Date();
 
     await stats.save();
 
     await interaction.editReply({
+
         embeds: [
+
             new EmbedBuilder()
-                .setTitle("❌ Game Over")
-                .setColor("Red")
+
+                .setTitle(
+                    "❌ Game Over"
+                )
+
+                .setColor(
+                    "Red"
+                )
+
                 .setDescription(
 `
-⭐ Score: ${score}
-🔥 Best streak: ${streak}
-❌ Wrong answers: ${wrong}
+📂 **Category**
+${question?.category ?? "Unknown"}
+
+❓ **Question**
+${question?.question ?? "Unknown"}
+
+✅ **Correct answer**
+${question?.correctAnswer ?? "Unknown"}
+
+⭐ **Final score**
+${score}
+
+🔥 **Best streak**
+${bestStreak}
+
+❌ **Wrong answers**
+${wrong}
 `
                 )
+
         ],
+
         components: []
+
     });
+
 }
 
 module.exports = soloMode;

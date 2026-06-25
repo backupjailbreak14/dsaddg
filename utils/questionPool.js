@@ -8,7 +8,9 @@ const sovietCulture = require("../data/sovietCulture");
 const sovietAwards = require("../data/sovietAwards");
 const sovietEconomy = require("../data/sovietEconomy");
 
+
 const questions = [
+
     ...sovietHistory,
     ...sovietMilitary,
     ...sovietLeaders,
@@ -18,29 +20,43 @@ const questions = [
     ...sovietCulture,
     ...sovietAwards,
     ...sovietEconomy
+
 ];
 
-function getRandomQuestion(used = new Set(), userStats = null) {
 
-    const alreadyUsed = new Set([
-        ...used,
-        ...(userStats?.usedQuestions || [])
-    ]);
 
-    const available = questions.filter(q => !alreadyUsed.has(q.question));
+function getRandomQuestion(used = new Set()) {
 
-    if (available.length === 0) return null;
 
-    const random = available[Math.floor(Math.random() * available.length)];
+    const available =
+        questions.filter(
+            q => !used.has(q.question)
+        );
 
-    alreadyUsed.add(random.question);
 
-    if (userStats) {
-        userStats.usedQuestions.push(random.question);
-    }
+    if (available.length === 0)
+        return null;
+
+
+
+    const random =
+        available[
+            Math.floor(
+                Math.random() * available.length
+            )
+        ];
+
+
+
+    used.add(random.question);
+
+
 
     return random;
+
 }
+
+
 
 module.exports = {
     getRandomQuestion
