@@ -8,6 +8,7 @@ const {
 const { getRandomQuestion } = require("../utils/questionPool");
 const shuffleQuestion = require("../utils/shuffleQuestion");
 const QuizStats = require("../models/QuizStats");
+const { removeDuel } = require("../utils/activeDuels");
 
 async function duelMode(interaction, opponent) {
 
@@ -412,6 +413,11 @@ async function endDuel(
 
     await p1Stats.save();
     await p2Stats.save();
+
+    removeDuel(
+        p1.id,
+        p2.id
+    );
 
 
 
