@@ -14,7 +14,6 @@ async function soloMode(interaction) {
     let score = 0;
     let streak = 0;
     let bestStreak = 0;
-    let wrong = 0;
 
     let used = new Set();
     let gameOver = false;
@@ -45,7 +44,10 @@ async function soloMode(interaction) {
 
         do {
 
-            raw = getRandomQuestion(used);
+            raw = getRandomQuestion(
+                used,
+                stats
+            );
 
             tries++;
 
@@ -109,10 +111,6 @@ ${question.category}
 ${question.question}
 
 ⭐ Score: ${score}
-
-🔥 Streak: ${streak}
-
-❌ Mistakes: ${wrong}
 
 ⏱️ Time limit: **15 seconds**
 `
@@ -303,7 +301,6 @@ You did not answer within **15 seconds**.
 
                             bestStreak,
 
-                            wrong,
 
                             question
 
@@ -325,8 +322,6 @@ async function endSolo(
     interaction,
     stats,
     score,
-    bestStreak,
-    wrong,
     question
 ) {
 
@@ -338,8 +333,7 @@ async function endSolo(
     stats.correctAnswers +=
         score;
 
-    stats.wrongAnswers +=
-        wrong;
+    stats.wrongAnswers += 1;
 
     stats.totalPoints +=
         score;

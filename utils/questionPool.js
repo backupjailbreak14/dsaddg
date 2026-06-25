@@ -25,35 +25,49 @@ const questions = [
 
 
 
-function getRandomQuestion(used = new Set()) {
+function getRandomQuestion(used = new Set(), stats = null) {
 
+    const alreadyUsed = new Set([
+        ...used,
+        ...(stats?.usedQuestions || [])
+    ]);
 
-    const available =
-        questions.filter(
-            q => !used.has(q.question)
-        );
+    const available = questions.filter(
+        q => !alreadyUsed.has(q.question)
+    );
 
+    if (available.length === 0) {
 
-    if (available.length === 0)
-        return null;
+        // Reset wanneer alle vragen ooit gebruikt zijn
+        if (stats) {
+            stats.usedQuestions = [];
+        }
 
-
+        return questions[
+            Math.floor(Math.random() * questions.length)
+        ];
+    }
 
     const random =
         available[
-            Math.floor(
-                Math.random() * available.length
-            )
+            Math.floor(Math.random() * available.length)
         ];
 
+
+    if (stats) {
+
+        stats.usedQuestions.push(
+            random.question
+        );
+
+        stats.save();
+
+    }
 
 
     used.add(random.question);
 
-
-
     return random;
-
 }
 
 
