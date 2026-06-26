@@ -142,25 +142,24 @@ module.exports = {
 
                     if (i.customId === "duel_accept") {
 
-
                         collector.stop();
 
+                        addDuel(
+                            interaction.user.id,
+                            opponent.id
+                        );
 
                         await i.update({
-
                             content: "⚔️ Duel accepted!",
                             embeds: [],
                             components: []
-
                         });
 
 
-                        // Start duel
                         duelMode(
                             interaction,
                             opponent
                         );
-
 
                     }
 
@@ -193,22 +192,17 @@ module.exports = {
 
                 collector.on("end", async collected => {
 
-
                     if (collected.size === 0) {
+
                         removeDuel(
                             interaction.user.id,
                             opponent.id
                         );
 
                         await interaction.editReply({
-
-                            content:
-                            "⌛ Duel request expired.",
-
+                            content: "⌛ Duel request expired.",
                             embeds: [],
-
                             components: []
-
                         });
 
                     }

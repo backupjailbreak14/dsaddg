@@ -8,7 +8,10 @@ const {
 const { getRandomQuestion } = require("../utils/questionPool");
 const shuffleQuestion = require("../utils/shuffleQuestion");
 const QuizStats = require("../models/QuizStats");
-const { removeDuel } = require("../utils/activeDuels");
+const {
+    removeDuel,
+    clearDuel
+} = require("../utils/activeDuels");
 
 async function duelMode(interaction, opponent) {
 
@@ -290,7 +293,20 @@ ${questionCount + 1}/${maxQuestions}
 
         }
 
-        sendQuestion();
+    sendQuestion().catch(async error => {
+
+        console.error("Duel error:", error);
+
+        clearDuel(players[0].id);
+        clearDuel(players[1].id);
+
+        await interaction.editReply({
+            content: "❌ Duel stopped because of an error.",
+            embeds: [],
+            components: []
+        });
+
+    });
 
         }
 
