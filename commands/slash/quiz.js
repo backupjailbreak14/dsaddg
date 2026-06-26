@@ -190,9 +190,9 @@ module.exports = {
                 });
 
 
-                collector.on("end", async collected => {
+                collector.on("end", async (_, reason) => {
 
-                    if (collected.size === 0) {
+                    if (reason === "time") {
 
                         removeDuel(
                             interaction.user.id,
@@ -200,9 +200,14 @@ module.exports = {
                         );
 
                         await interaction.editReply({
-                            content: "⌛ Duel request expired.",
+
+                            content:
+                            "⌛ Duel request expired.",
+
                             embeds: [],
+
                             components: []
+
                         });
 
                     }
