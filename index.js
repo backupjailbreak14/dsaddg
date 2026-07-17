@@ -59,26 +59,7 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => log(`🌐 Webserver online on port ${PORT}`));
 
 
-const { syncTrelloAwards } = require("./utils/trelloAwardSync");
 
-client.once("ready", async () => {
-
-    await syncTrelloAwards(
-        client,
-        "JOUW_SERVER_ID"
-    );
-
-
-    setInterval(() => {
-
-        syncTrelloAwards(
-            client,
-            "JOUW_SERVER_ID"
-        );
-
-    }, 1000 * 60 * 30);
-
-});
 // ----------------------
 // DISCORD CLIENT (v14)
 // ----------------------
@@ -474,9 +455,46 @@ client.on("messageCreate", async (message) => {
 // ----------------------
 // READY EVENT + REBOOT RECOVERY
 // ----------------------
+const { syncTrelloAwards } = require("./utils/trelloAwardSync");
+
 client.on("clientReady", async () => {
+
   botOnlineSince = Date.now();
+
   log(`TOKEN IS LOADED & BOT IS READY: ${client.user.tag}`);
+
+
+  // Trello award sync
+
+  try {
+
+    await syncTrelloAwards(
+      client,
+      "1123600249798266962"
+    );
+
+    setInterval(() => {
+
+      syncTrelloAwards(
+        client,
+        "1123600249798266962"
+      );
+
+    }, 1000 * 60 * 30);
+
+
+    log("🏅 Trello award sync enabled");
+
+  }
+  catch(error) {
+
+    logError(
+      "❌ Trello sync failed:",
+      error
+    );
+
+  }
+
 
   const statuses = [
     "watching bear king plan raids",
@@ -486,6 +504,7 @@ client.on("clientReady", async () => {
     "watching over ikiller to stop aa",
     ".help"
   ];
+
 
   setInterval(() => {
     const s = statuses[Math.floor(Math.random() * statuses.length)];
