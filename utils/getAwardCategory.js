@@ -1,4 +1,4 @@
-const awards = require("./awardCategories");
+const awards = require("./awards");
 
 function normalize(text) {
 
