@@ -1,518 +1,884 @@
 const {
-  SlashCommandBuilder,
-  EmbedBuilder,
-  ActionRowBuilder,
-  ButtonBuilder,
-  ButtonStyle
+    SlashCommandBuilder,
+    EmbedBuilder,
+    ActionRowBuilder,
+    ButtonBuilder,
+    ButtonStyle
 } = require("discord.js");
 
 const memoryGames =
-  require("../../games/memoryGames");
+    require("../../games/memoryGames");
+
 
 module.exports = {
 
-  data:
-      new SlashCommandBuilder()
+    data:
+        new SlashCommandBuilder()
 
-          .setName("memory")
+            .setName("memory")
 
-          .setDescription(
-              "Start a memory match game"
-          )
+            .setDescription(
+                "Start a memory match game"
+            )
 
-          .addUserOption(option =>
+            .addUserOption(option =>
 
-              option
+                option
 
-                  .setName("opponent")
+                    .setName("opponent")
 
-                  .setDescription(
-                      "Player to challenge"
-                  )
+                    .setDescription(
+                        "Player to challenge"
+                    )
 
-                  .setRequired(true)
+                    .setRequired(true)
 
-          ),
+            ),
 
-  async run(client, interaction) {
 
-      const opponent =
-          interaction.options.getUser(
-              "opponent"
-          );
+    async run(client, interaction) {
 
-      if (
-          opponent.bot ||
-          opponent.id === interaction.user.id
-      ) {
 
-          return interaction.reply({
+        const opponent =
+            interaction.options.getUser(
+                "opponent"
+            );
 
-              content:
-                  "❌ Invalid opponent.",
 
-              ephemeral: true
+        if (
+            opponent.bot ||
+            opponent.id === interaction.user.id
+        ) {
 
-          });
+            return interaction.reply({
 
-      }
+                content:
+                    "❌ Invalid opponent.",
 
-      const existingGame =
-          [...memoryGames.values()]
-              .find(game =>
+                ephemeral: true
 
-                  game.player1 === interaction.user.id ||
-                  game.player2 === interaction.user.id ||
-                  game.player1 === opponent.id ||
-                  game.player2 === opponent.id
+            });
 
-              );
+        }
 
-      if (existingGame) {
 
-          return interaction.reply({
 
-              content:
-                  "❌ One of these players is already in a game.",
+        // Check if one of the players is already in a memory game
 
-              ephemeral: true
+        const existingGame =
+            [...memoryGames.values()]
+                .find(game =>
 
-          });
+                    game.player1 === interaction.user.id ||
+                    game.player2 === interaction.user.id ||
+                    game.player1 === opponent.id ||
+                    game.player2 === opponent.id
 
-      }
+                );
 
-      const guildEmojis =
-          interaction.guild.emojis.cache
-              .filter(e => e.available)
-              .map(e => e);
 
-      if (
-          guildEmojis.length < 12
-      ) {
+        if (existingGame) {
 
-          return interaction.reply({
+            return interaction.reply({
 
-              content:
-                  "❌ The server must have at least 12 custom emojis.",
+                content:
+                    "❌ One of these players is already in a game.",
 
-              ephemeral: true
+                ephemeral: true
 
-          });
+            });
 
-      }
+        }
 
-      const selected =
-          guildEmojis
-              .sort(() => Math.random() - 0.5)
-              .slice(0, 12);
 
-      let cards = [];
 
-      selected.forEach(emoji => {
+        // Create challenge buttons
 
-          cards.push(emoji);
-          cards.push(emoji);
+        const challengeRow =
+            new ActionRowBuilder()
 
-      });
+                .addComponents(
 
-      cards =
-          cards.sort(
-              () => Math.random() - 0.5
-          );
+                    new ButtonBuilder()
 
-      const gameId =
-          interaction.id;
+                        .setCustomId(
+                            "memory_accept"
+                        )
 
-      const game = {
+                        .setLabel(
+                            "✅ Accept"
+                        )
 
-          player1:
-              interaction.user.id,
+                        .setStyle(
+                            ButtonStyle.Success
+                        ),
 
-          player2:
-              opponent.id,
 
-          turn:
-              interaction.user.id,
+                    new ButtonBuilder()
 
-          board:
-              cards,
+                        .setCustomId(
+                            "memory_decline"
+                        )
 
-          matched:
-              [],
+                        .setLabel(
+                            "❌ Decline"
+                        )
 
-          revealed:
-              [],
+                        .setStyle(
+                            ButtonStyle.Danger
+                        )
 
-          scores: {
+                );
 
-              [interaction.user.id]: 0,
 
-              [opponent.id]: 0
 
-          }
+        const challengeEmbed =
+            new EmbedBuilder()
 
-      };
+                .setTitle(
+                    "🧠 Memory Match Challenge"
+                )
 
-      memoryGames.set(
-          gameId,
-          game
-      );
+                .setColor(
+                    "#D4AF37"
+                )
 
-      const createEmbed = () => {
+                .setDescription(
+`
+${interaction.user} challenged ${opponent} to a Memory Match!
 
-          return new EmbedBuilder()
+${opponent}, do you accept?
 
-              .setTitle(
-                  "🎮 Memory Match"
-              )
+⌛ This request expires in **30 seconds**.
+`
+                );
 
-              .setColor(
-                  "#D4AF37"
-              )
 
-              .setDescription(
 
-`👤 <@${game.player1}> — ${game.scores[game.player1]} points
-👤 <@${game.player2}> — ${game.scores[game.player2]} points
+        await interaction.reply({
 
-🎯 Current Turn:
-<@${game.turn}>
+            embeds: [
+                challengeEmbed
+            ],
 
-🏆 Matches Found:
-${game.matched.length / 2}/12`
+            components: [
+                challengeRow
+            ]
 
-              );
+        });
 
-      };
 
-      const createBoard = () => {
 
-          const rows = [];
+        const challengeMessage =
+            await interaction.fetchReply();
 
-          for (
-              let row = 0;
-              row < 5;
-              row++
-          ) {
 
-              const actionRow =
-                  new ActionRowBuilder();
 
-              const start =
-                  row * 5;
+        const challengeCollector =
+            challengeMessage.createMessageComponentCollector({
 
-              const end =
-                  Math.min(
-                      start + 5,
-                      24
-                  );
+                time: 30000
 
-              for (
-                  let i = start;
-                  i < end;
-                  i++
-              ) {
+            });
 
-                  const button =
-                      new ButtonBuilder()
 
-                          .setCustomId(
-                              `memory_${i}`
-                          )
 
-                          .setStyle(
-                              ButtonStyle.Secondary
-                          );
+        challengeCollector.on(
+            "collect",
+            async i => {
 
-                  if (
-                      game.matched.includes(i) ||
-                      game.revealed.includes(i)
-                  ) {
 
-                      button
-                          .setEmoji(
-                              game.board[i].id
-                          )
-                          .setDisabled(true);
+                // Only opponent can accept or decline
 
-                  }
-                  else {
+                if (
+                    i.user.id !== opponent.id
+                ) {
 
-                      button
-                          .setLabel("?");
+                    return i.reply({
 
-                  }
+                        content:
+                            "❌ This challenge is not for you.",
 
-                  actionRow.addComponents(
-                      button
-                  );
+                        ephemeral: true
 
-              }
+                    });
 
-              rows.push(
-                  actionRow
-              );
+                }
 
-          }
 
-          return rows;
 
-      };
+                if (
+                    i.customId === "memory_decline"
+                ) {
 
-      await interaction.reply({
+                    challengeCollector.stop(
+                        "declined"
+                    );
 
-          content:
-              `${opponent}, Memory Match has started!`,
 
-          embeds: [
-              createEmbed()
-          ],
+                    return i.update({
 
-          components:
-              createBoard()
+                        content:
+                            "❌ Memory challenge declined.",
 
-      });
+                        embeds: [],
 
-      const message =
-          await interaction.fetchReply();
+                        components: []
 
-      const collector =
-          message.createMessageComponentCollector({
+                    });
 
-              time:
-                  1000 * 60 * 15
+                }
 
-          });
 
-      collector.on(
-          "collect",
-          async i => {
 
-              if (
-                  i.user.id !== game.turn
-              ) {
+                if (
+                    i.customId === "memory_accept"
+                ) {
 
-                  return i.reply({
+                    challengeCollector.stop(
+                        "accepted"
+                    );
 
-                      content:
-                          "❌ It is not your turn.",
 
-                      ephemeral: true
+                    await i.update({
 
-                  });
+                        content:
+                            "🧠 Memory challenge accepted!",
 
-              }
+                        embeds: [],
 
-              const index =
-                  parseInt(
-                      i.customId.replace(
-                          "memory_",
-                          ""
-                      )
-                  );
+                        components: []
 
-              if (
-                  game.revealed.includes(index) ||
-                  game.matched.includes(index)
-              ) {
+                    });
 
-                  return i.deferUpdate();
 
-              }
+                    startMemoryGame();
 
-              game.revealed.push(
-                  index
-              );
+                }
 
-              if (
-                  game.revealed.length % 2 === 1
-              ) {
 
-                  await i.update({
+            }
 
-                      embeds: [
-                          createEmbed()
-                      ],
+        );
 
-                      components:
-                          createBoard()
 
-                  });
 
-                  return;
+        challengeCollector.on(
+            "end",
+            async (_, reason) => {
 
-              }
 
-              await i.update({
+                if (
+                    reason === "time"
+                ) {
 
-                  embeds: [
-                      createEmbed()
-                  ],
+                    await challengeMessage.edit({
 
-                  components:
-                      createBoard()
+                        content:
+                            "⌛ Memory challenge expired.",
 
-              });
+                        embeds: [],
 
-              const first =
-                  game.revealed[
-                      game.revealed.length - 2
-                  ];
+                        components: []
 
-              const second =
-                  game.revealed[
-                      game.revealed.length - 1
-                  ];
+                    });
 
-              const firstCard =
-                  game.board[first];
+                }
 
-              const secondCard =
-                  game.board[second];
+            }
 
-              if (
-                  firstCard.id === secondCard.id
-              ) {
+        );
 
-                  game.matched.push(
-                      first,
-                      second
-                  );
 
-                  game.scores[
-                      game.turn
-                  ]++;
 
-              }
-              else {
+        async function startMemoryGame() {
+            const guildEmojis =
+                interaction.guild.emojis.cache
+                    .filter(e => e.available)
+                    .map(e => e);
 
-                  await new Promise(resolve =>
-                      setTimeout(
-                          resolve,
-                          1500
-                      )
-                  );
 
-                  game.revealed =
-                      game.revealed.filter(pos =>
 
-                          pos !== first &&
-                          pos !== second
+            if (
+                guildEmojis.length < 12
+            ) {
 
-                      );
+                return interaction.followUp({
 
-                  game.turn =
-                      game.turn === game.player1
-                          ? game.player2
-                          : game.player1;
+                    content:
+                        "❌ The server must have at least 12 custom emojis.",
 
-              }
+                    ephemeral: true
 
-              if (
-                  game.matched.length === 24
-              ) {
+                });
 
-                  collector.stop();
+            }
 
-                  const score1 =
-                      game.scores[
-                          game.player1
-                      ];
 
-                  const score2 =
-                      game.scores[
-                          game.player2
-                      ];
 
-                  let winner;
+            const selected =
+                guildEmojis
+                    .sort(() => Math.random() - 0.5)
+                    .slice(0, 12);
 
-                  if (score1 > score2) {
 
-                      winner =
-                          `<@${game.player1}>`;
 
-                  }
-                  else if (
-                      score2 > score1
-                  ) {
+            let cards = [];
 
-                      winner =
-                          `<@${game.player2}>`;
 
-                  }
-                  else {
 
-                      winner =
-                          "🤝 Draw";
+            selected.forEach(emoji => {
 
-                  }
+                cards.push(emoji);
 
-                  const endEmbed =
-                      new EmbedBuilder()
+                cards.push(emoji);
 
-                          .setTitle(
-                              "🏆 Memory Match Finished"
-                          )
+            });
 
-                          .setColor(
-                              "#00FF00"
-                          )
 
-                          .setDescription(
 
-`👤 <@${game.player1}> — ${score1} points
-👤 <@${game.player2}> — ${score2} points
+            cards =
+                cards.sort(
+                    () => Math.random() - 0.5
+                );
 
-Winner:
-${winner}`
 
-                          );
 
-                  await message.edit({
+            const gameId =
+                interaction.id;
 
-                      embeds: [
-                          endEmbed
-                      ],
 
-                      components: []
 
-                  });
+            const game = {
 
-                  memoryGames.delete(
-                      gameId
-                  );
+                player1:
+                    interaction.user.id,
 
-                  return;
 
-              }
+                player2:
+                    opponent.id,
 
-              await message.edit({
 
-                  embeds: [
-                      createEmbed()
-                  ],
+                turn:
+                    interaction.user.id,
 
-                  components:
-                      createBoard()
 
-              });
+                board:
+                    cards,
 
-          }
 
-      );
+                matched:
+                    [],
 
-      collector.on(
-          "end",
-          async () => {
 
-              memoryGames.delete(
-                  gameId
-              );
+                revealed:
+                    [],
 
-          }
 
-      );
+                scores: {
 
-  }
+                    [interaction.user.id]: 0,
 
-};
+                    [opponent.id]: 0
+
+                }
+
+            };
+
+
+
+            memoryGames.set(
+                gameId,
+                game
+            );
+
+
+
+            const createEmbed = () => {
+
+                return new EmbedBuilder()
+
+                    .setTitle(
+                        "🎮 Memory Match"
+                    )
+
+                    .setColor(
+                        "#D4AF37"
+                    )
+
+                    .setDescription(
+            `
+            👤 <@${game.player1}> — ${game.scores[game.player1]} points
+
+            👤 <@${game.player2}> — ${game.scores[game.player2]} points
+
+
+            🎯 Current Turn:
+
+            <@${game.turn}>
+
+
+            🏆 Matches Found:
+
+            ${game.matched.length / 2}/12
+            `
+                    );
+
+            };
+
+
+
+            const createBoard = () => {
+
+                const rows = [];
+
+
+
+                for (
+                    let row = 0;
+                    row < 5;
+                    row++
+                ) {
+
+
+                    const actionRow =
+                        new ActionRowBuilder();
+
+
+
+                    const start =
+                        row * 5;
+
+
+
+                    const end =
+                        Math.min(
+                            start + 5,
+                            24
+                        );
+
+
+
+                    for (
+                        let i = start;
+                        i < end;
+                        i++
+                    ) {
+
+
+                        const button =
+                            new ButtonBuilder()
+
+                                .setCustomId(
+                                    `memory_${i}`
+                                )
+
+                                .setStyle(
+                                    ButtonStyle.Secondary
+                                );
+
+
+
+                        if (
+
+                            game.matched.includes(i) ||
+
+                            game.revealed.includes(i)
+
+                        ) {
+
+
+                            button
+
+                                .setEmoji(
+                                    game.board[i].id
+                                )
+
+                                .setDisabled(true);
+
+
+                        }
+
+                        else {
+
+
+                            button.setLabel(
+                                "?"
+                            );
+
+
+                        }
+
+
+
+                        actionRow.addComponents(
+                            button
+                        );
+
+
+                    }
+
+
+
+                    rows.push(
+                        actionRow
+                    );
+
+
+                }
+
+
+
+                return rows;
+
+
+            };
+
+
+
+            await interaction.followUp({
+
+                content:
+                    `${opponent}, Memory Match has started!`,
+
+                embeds: [
+                    createEmbed()
+                ],
+
+                components:
+                    createBoard()
+
+            });
+
+
+
+            const message =
+                await interaction.fetchReply();
+
+
+
+            const collector =
+                message.createMessageComponentCollector({
+
+                    time:
+                        1000 * 60 * 15
+
+                });
+
+
+
+            collector.on(
+                "collect",
+                async i => {
+
+
+                    if (
+                        i.user.id !== game.turn
+                    ) {
+
+
+                        return i.reply({
+
+                            content:
+                                "❌ It is not your turn.",
+
+                            ephemeral: true
+
+                        });
+
+
+                    }
+
+
+
+                    const index =
+                        parseInt(
+
+                            i.customId.replace(
+                                "memory_",
+                                ""
+                            )
+
+                        );
+
+
+
+                    if (
+
+                        game.revealed.includes(index) ||
+
+                        game.matched.includes(index)
+
+                    ) {
+
+
+                        return i.deferUpdate();
+
+
+                    }
+
+
+
+                    game.revealed.push(
+                        index
+                    );
+
+
+                    if (
+                        game.revealed.length % 2 === 1
+                    ) {
+
+                        await i.update({
+
+                            embeds: [
+                                createEmbed()
+                            ],
+
+                            components:
+                                createBoard()
+
+                        });
+
+                        return;
+
+                    }
+
+
+
+                    await i.update({
+
+                        embeds: [
+                            createEmbed()
+                        ],
+
+                        components:
+                            createBoard()
+
+                    });
+
+
+
+                    const first =
+                        game.revealed[
+                            game.revealed.length - 2
+                        ];
+
+
+                    const second =
+                        game.revealed[
+                            game.revealed.length - 1
+                        ];
+
+
+
+                    const firstCard =
+                        game.board[first];
+
+
+                    const secondCard =
+                        game.board[second];
+
+
+
+                    if (
+                        firstCard.id === secondCard.id
+                    ) {
+
+
+                        game.matched.push(
+                            first,
+                            second
+                        );
+
+
+                        game.scores[
+                            game.turn
+                        ]++;
+
+
+                    }
+
+                    else {
+
+
+                        await new Promise(resolve =>
+
+                            setTimeout(
+                                resolve,
+                                1500
+                            )
+
+                        );
+
+
+
+                        game.revealed =
+                            game.revealed.filter(pos =>
+
+                                pos !== first &&
+                                pos !== second
+
+                            );
+
+
+
+                        game.turn =
+                            game.turn === game.player1
+                                ? game.player2
+                                : game.player1;
+
+
+                    }
+
+
+
+                    if (
+                        game.matched.length === 24
+                    ) {
+
+
+                        collector.stop();
+
+
+
+                        const score1 =
+                            game.scores[
+                                game.player1
+                            ];
+
+
+
+                        const score2 =
+                            game.scores[
+                                game.player2
+                            ];
+
+
+
+                        let winner;
+
+
+
+                        if (
+                            score1 > score2
+                        ) {
+
+                            winner =
+                                `<@${game.player1}>`;
+
+                        }
+
+                        else if (
+                            score2 > score1
+                        ) {
+
+                            winner =
+                                `<@${game.player2}>`;
+
+                        }
+
+                        else {
+
+                            winner =
+                                "🤝 Draw";
+
+                        }
+
+
+
+                        const endEmbed =
+                            new EmbedBuilder()
+
+                                .setTitle(
+                                    "🏆 Memory Match Finished"
+                                )
+
+                                .setColor(
+                                    "#00FF00"
+                                )
+
+                                .setDescription(
+                    `
+                    👤 <@${game.player1}> — ${score1} points
+
+                    👤 <@${game.player2}> — ${score2} points
+
+
+                    🏆 Winner:
+
+                    ${winner}
+                    `
+                                );
+
+
+
+                        await message.edit({
+
+                            embeds: [
+                                endEmbed
+                            ],
+
+                            components: []
+
+                        });
+
+
+
+                        memoryGames.delete(
+                            gameId
+                        );
+
+
+                        return;
+
+
+                    }
+
+
+
+                    await message.edit({
+
+                        embeds: [
+                            createEmbed()
+                        ],
+
+                        components:
+                            createBoard()
+
+                    });
+
+
+                    }
+
+                    );
+
+
+
+                    collector.on(
+                    "end",
+                    async () => {
+
+
+                    memoryGames.delete(
+                        gameId
+                    );
+
+
+                    await message.edit({
+
+                        components: []
+
+                    }).catch(() => {});
+
+
+                    }
+
+                    );
+
+
+                    }
+
+
+                    }
+
+                    };
