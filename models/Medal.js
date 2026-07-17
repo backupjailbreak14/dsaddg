@@ -1,6 +1,5 @@
 const mongoose = require("mongoose");
 
-
 const MedalSchema = new mongoose.Schema({
 
     userId: {
@@ -9,57 +8,46 @@ const MedalSchema = new mongoose.Schema({
         unique: true
     },
 
-
     username: {
         type: String,
         required: true
     },
 
-
     medals: [
 
         {
+
+            trelloCardId: {
+                type: String,
+                unique: true
+            },
 
             name: {
                 type: String,
                 required: true
             },
 
-
-            count: {
-                type: Number,
-                default: 1,
-                min: 1
-            },
-
-
             category: {
                 type: String,
                 default: "other"
             },
-
 
             reason: {
                 type: String,
                 default: null
             },
 
-
             awardedBy: {
 
                 id: {
-                    type: String,
-                    required: true
+                    type: String
                 },
 
-
                 username: {
-                    type: String,
-                    required: true
+                    type: String
                 }
 
             },
-
 
             awardedAt: {
                 type: Date,

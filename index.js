@@ -58,6 +58,27 @@ function msToReadable(ms) {
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => log(`🌐 Webserver online on port ${PORT}`));
 
+
+const { syncTrelloAwards } = require("./utils/trelloAwardSync");
+
+client.once("ready", async () => {
+
+    await syncTrelloAwards(
+        client,
+        "JOUW_SERVER_ID"
+    );
+
+
+    setInterval(() => {
+
+        syncTrelloAwards(
+            client,
+            "JOUW_SERVER_ID"
+        );
+
+    }, 1000 * 60 * 30);
+
+});
 // ----------------------
 // DISCORD CLIENT (v14)
 // ----------------------
