@@ -1,25 +1,52 @@
-const awards =
-    require("./awards");
+const awards = require("./awardCategories");
+
+function normalize(text) {
+
+    return text
+        .toLowerCase()
+        .replace(/\s+/g, " ")
+        .trim();
+
+}
 
 
-module.exports = function(name) {
+function getAwardInfo(name) {
+
+    const search =
+        normalize(name);
 
 
-    for (
-        const [category, list]
-        of Object.entries(awards)
-    ) {
+    for (const [category, list] of Object.entries(awards)) {
 
+        for (const award of list) {
 
-        if (list.includes(name)) {
+            if (
+                normalize(award) === search
+            ) {
 
-            return category;
+                return {
+                    name: award,
+                    category: category
+                };
+
+            }
 
         }
 
     }
 
 
-    return "other";
+    return {
+        name: name
+            .toLowerCase()
+            .replace(/\b\w/g, char =>
+                char.toUpperCase()
+            ),
 
-};
+        category: "other"
+    };
+
+}
+
+
+module.exports = getAwardInfo;
