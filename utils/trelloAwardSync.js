@@ -1,7 +1,7 @@
 const axios = require("axios");
 
 const Medal = require("../models/Medal");
-const GetAwardCategory = require("./GetAwardCategory");
+const GetAwardCategory = require("./getAwardCategory");
 
 
 async function getTrelloLists() {

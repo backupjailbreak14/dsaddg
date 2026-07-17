@@ -536,24 +536,22 @@ ${opponent}, do you accept?
 
 
 
-            await interaction.followUp({
-
-                content:
-                    `${opponent}, Memory Match has started!`,
-
-                embeds: [
-                    createEmbed()
-                ],
-
-                components:
-                    createBoard()
-
-            });
-
-
-
             const message =
-                await interaction.fetchReply();
+                await interaction.followUp({
+
+                    content:
+                        `${opponent}, Memory Match has started!`,
+
+                    embeds: [
+                        createEmbed()
+                    ],
+
+                    components:
+                        createBoard(),
+
+                    fetchReply: true
+
+                });
 
 
 
