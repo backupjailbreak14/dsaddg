@@ -1,5 +1,5 @@
 const Medal = require("../models/Medal");
-const getAwardCategory = require("./getAwardCategory");
+const GetAwardInfo = require("./getAwardInfo");
 const awards = require("./awards");
 
 
@@ -29,22 +29,36 @@ function normalizeAward(name) {
 
 
 
+
 async function addAward({
 
     userId,
     username,
     award,
     reason = null,
+
     awardedBy = {
+
         id: "System",
         username: "System"
+
     }
 
 }) {
 
 
+
     const cleanAward =
         normalizeAward(award);
+
+
+
+    const awardInfo =
+        GetAwardInfo(
+            cleanAward
+        );
+
+
 
 
 
@@ -60,18 +74,20 @@ async function addAward({
 
 
 
+
     if (!data) {
 
 
-        data = new Medal({
+        data =
+            new Medal({
 
-            userId,
+                userId,
 
-            username,
+                username,
 
-            medals: []
+                medals: []
 
-        });
+            });
 
 
     }
@@ -79,8 +95,12 @@ async function addAward({
 
 
 
+
+
     data.username =
         username;
+
+
 
 
 
@@ -94,7 +114,7 @@ async function addAward({
 
                 medal.name.toLowerCase()
                 ===
-                cleanAward.toLowerCase()
+                awardInfo.name.toLowerCase()
 
                 &&
 
@@ -108,7 +128,9 @@ async function addAward({
 
 
 
+
     if (existing) {
+
 
 
         existing.count =
@@ -126,20 +148,23 @@ async function addAward({
     else {
 
 
+
         data.medals.push({
 
+
+
             name:
-                cleanAward,
+                awardInfo.name,
+
+
+
+            category:
+                awardInfo.category,
+
 
 
             count:
                 1,
-
-
-            category:
-                getAwardCategory(
-                    cleanAward
-                ),
 
 
 
@@ -159,10 +184,15 @@ async function addAward({
             awardedAt:
                 new Date()
 
+
+
         });
 
 
+
     }
+
+
 
 
 
@@ -172,10 +202,13 @@ async function addAward({
 
 
 
-    return cleanAward;
+    return awardInfo.name;
+
 
 
 }
+
+
 
 
 
