@@ -19,7 +19,7 @@ const MedalSchema = new mongoose.Schema({
 
             trelloCardId: {
                 type: String,
-                unique: true
+                default: null
             },
 
             name: {
@@ -32,6 +32,12 @@ const MedalSchema = new mongoose.Schema({
                 default: "other"
             },
 
+            count: {
+                type: Number,
+                default: 1,
+                min: 1
+            },
+
             reason: {
                 type: String,
                 default: null
@@ -40,11 +46,13 @@ const MedalSchema = new mongoose.Schema({
             awardedBy: {
 
                 id: {
-                    type: String
+                    type: String,
+                    default: "Trello"
                 },
 
                 username: {
-                    type: String
+                    type: String,
+                    default: "Trello Sync"
                 }
 
             },

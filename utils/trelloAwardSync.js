@@ -4,9 +4,7 @@ const Medal = require("../models/Medal");
 const TrelloSync = require("../models/TrelloSync");
 const GetAwardCategory = require("./getAwardCategory");
 
-
 async function getTrelloLists() {
-
     const response = await axios.get(
         `https://api.trello.com/1/boards/${process.env.TRELLO_BOARD_ID}/lists`,
         {
@@ -20,9 +18,7 @@ async function getTrelloLists() {
     return response.data;
 }
 
-
 async function getCardsFromList(listId) {
-
     const response = await axios.get(
         `https://api.trello.com/1/lists/${listId}/cards`,
         {
@@ -36,9 +32,7 @@ async function getCardsFromList(listId) {
     return response.data;
 }
 
-
 function findRobloxUser(guild, robloxName) {
-
     return guild.members.cache.find(member => {
 
         const names = [
@@ -46,16 +40,35 @@ function findRobloxUser(guild, robloxName) {
             member.user.username
         ]
         .filter(Boolean)
-        .map(name =>
-            name.toLowerCase()
-        );
+        .map(name => name.toLowerCase());
 
         return names.includes(
             robloxName.toLowerCase()
         );
 
     });
+}
 
+function getAwardCount(card) {
+
+    if (!card.labels || card.labels.length === 0) {
+        return 1;
+    }
+
+    const labelName =
+        card.labels[0].name.toLowerCase();
+
+
+    const match =
+        labelName.match(/\d+/);
+
+
+    if (match) {
+        return Number(match[0]);
+    }
+
+
+    return 1;
 }
 
 
@@ -64,12 +77,11 @@ async function syncTrelloAwards(client, guildId) {
     let synced = 0;
     let failed = 0;
 
+
     try {
 
         const guild =
-            client.guilds.cache.get(
-                guildId
-            );
+            client.guilds.cache.get(guildId);
 
 
         if (!guild) {
@@ -95,6 +107,7 @@ async function syncTrelloAwards(client, guildId) {
             await getTrelloLists();
 
 
+
         for (const list of lists) {
 
 
@@ -102,10 +115,19 @@ async function syncTrelloAwards(client, guildId) {
                 list.name.trim();
 
 
+
+            const category =
+                GetAwardCategory(
+                    awardName
+                );
+
+
+
             const cards =
                 await getCardsFromList(
                     list.id
                 );
+
 
 
             for (const card of cards) {
@@ -115,8 +137,8 @@ async function syncTrelloAwards(client, guildId) {
                     card.name.trim();
 
 
-                // Skip information card
 
+                // Skip information card
                 if (
                     robloxName.toLowerCase()
                     === awardName.toLowerCase()
@@ -127,11 +149,13 @@ async function syncTrelloAwards(client, guildId) {
                 }
 
 
+
                 const member =
                     findRobloxUser(
                         guild,
                         robloxName
                     );
+
 
 
                 if (!member) {
@@ -147,17 +171,21 @@ async function syncTrelloAwards(client, guildId) {
                 }
 
 
-                const category =
-                    GetAwardCategory(
-                        awardName
-                    );
+
+                const count =
+                    getAwardCount(card);
+
 
 
                 await Medal.findOneAndUpdate(
 
                     {
                         userId:
-                            member.id
+                            member.id,
+
+                        "medals.trelloCardId":
+                            card.id
+
                     },
 
                     {
@@ -171,53 +199,117 @@ async function syncTrelloAwards(client, guildId) {
                         },
 
 
-                        $addToSet: {
+                        $set: {
 
-                            medals: {
+                            "medals.$.count":
+                                count,
 
-                                name:
-                                    awardName,
+                            "medals.$.reason":
+                                card.desc ||
+                                "No reason provided"
 
-                                category:
-                                    category,
+                        }
 
-                                reason:
-                                    card.desc ||
-                                    "No reason provided",
+                    }
 
-                                awardedBy: {
+                );
 
-                                    id:
-                                        "Trello",
 
-                                    username:
-                                        "Trello Sync"
+
+                const exists =
+                    await Medal.findOne({
+
+                        userId:
+                            member.id,
+
+                        "medals.trelloCardId":
+                            card.id
+
+                    });
+
+
+
+                if (!exists) {
+
+
+                    await Medal.findOneAndUpdate(
+
+                        {
+                            userId:
+                                member.id
+                        },
+
+                        {
+
+                            $setOnInsert: {
+
+                                username:
+                                    member.nickname ||
+                                    member.user.username
+
+                            },
+
+
+                            $push: {
+
+                                medals: {
+
+                                    trelloCardId:
+                                        card.id,
+
+                                    name:
+                                        awardName,
+
+                                    category:
+                                        category,
+
+                                    count:
+                                        count,
+
+                                    reason:
+                                        card.desc ||
+                                        "No reason provided",
+
+
+                                    awardedBy: {
+
+                                        id:
+                                            "Trello",
+
+                                        username:
+                                            "Trello Sync"
+
+                                    },
+
+                                    awardedAt:
+                                        new Date()
 
                                 }
 
                             }
 
+                        },
+
+                        {
+                            upsert:true
                         }
 
-                    },
+                    );
 
-                    {
-                        upsert: true
-                    }
-
-                );
+                }
 
 
                 synced++;
 
 
                 console.log(
-                    `✅ ${awardName} -> ${robloxName}`
+                    `✅ ${awardName} x${count} -> ${robloxName}`
                 );
 
             }
 
         }
+
 
 
         await TrelloSync.findOneAndUpdate(
@@ -241,14 +333,14 @@ async function syncTrelloAwards(client, guildId) {
             },
 
             {
-                upsert: true
+                upsert:true
             }
 
         );
 
 
         console.log(
-            `🏅 Sync finished | Synced: ${synced} | Failed: ${failed}`
+            `🏅 Trello sync completed | Synced: ${synced} | Failed: ${failed}`
         );
 
 
@@ -257,7 +349,7 @@ async function syncTrelloAwards(client, guildId) {
 
 
         console.log(
-            "❌ Trello sync error:",
+            "❌ Trello sync failed:",
             error.message
         );
 
@@ -280,11 +372,10 @@ async function syncTrelloAwards(client, guildId) {
             },
 
             {
-                upsert: true
+                upsert:true
             }
 
         );
-
 
     }
 

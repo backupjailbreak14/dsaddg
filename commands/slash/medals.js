@@ -281,7 +281,7 @@ ${username}
 ${targetId}
 
 **Total Awards**
-${data.medals.length}
+${data.medals.reduce((total, medal) => total + (medal.count || 1), 0)}
 
 ${pages[page]}
 `

@@ -3,10 +3,8 @@ const {
     EmbedBuilder
 } = require("discord.js");
 
-
 const Medal =
     require("../../models/Medal");
-
 
 
 module.exports = {
@@ -22,8 +20,6 @@ module.exports = {
 
 
 
-
-
     async run(client, interaction) {
 
 
@@ -31,56 +27,64 @@ module.exports = {
 
 
 
-
-
-
         const users =
-
             await Medal.find({});
-
-
-
 
 
 
         if (!users || users.length === 0) {
 
-
             return interaction.editReply(
                 "❌ No awards have been given yet."
             );
-
 
         }
 
 
 
-
-
-
-
         const leaderboard =
-
 
             users
 
-                .map(user => ({
+                .map(user => {
 
 
-                    userId:
-                        user.userId,
+                    const totalAwards =
+
+                        user.medals.reduce(
+
+                            (total, medal) => {
+
+                                return total +
+                                    (medal.count || 1);
+
+                            },
+
+                            0
+
+                        );
 
 
-                    username:
-                        user.username ||
-                        "Unknown User",
+                    return {
 
 
-                    count:
-                        user.medals.length
+                        userId:
+                            user.userId,
 
 
-                }))
+                        username:
+                            user.username ||
+                            "Unknown User",
+
+
+                        count:
+                            totalAwards
+
+
+                    };
+
+
+                })
 
 
                 .sort(
@@ -96,35 +100,19 @@ module.exports = {
 
 
 
-
-
-
-
         const ranks = [
 
             "🥇",
-
             "🥈",
-
             "🥉",
-
             "🏅",
-
             "🏅"
 
         ];
 
 
 
-
-
-
-
         let description = "";
-
-
-
-
 
 
 
@@ -135,10 +123,8 @@ module.exports = {
         ) {
 
 
-
             const user =
                 leaderboard[i];
-
 
 
             let display =
@@ -160,7 +146,6 @@ module.exports = {
                     `<@${discordUser.id}>`;
 
 
-
             } catch {
 
 
@@ -172,25 +157,16 @@ module.exports = {
 
 
 
-
-
-
             description +=
 
 `
 ${ranks[i]} **${display}**
 
-Awards: **${user.count}**
+🏅 Awards: **${user.count}**
 
 `;
 
-
-
         }
-
-
-
-
 
 
 
@@ -199,11 +175,9 @@ Awards: **${user.count}**
             new EmbedBuilder()
 
 
-
                 .setTitle(
                     "🏆 Award Leaderboard"
                 )
-
 
 
                 .setColor(
@@ -211,11 +185,9 @@ Awards: **${user.count}**
                 )
 
 
-
                 .setDescription(
                     description
                 )
-
 
 
                 .setFooter({
@@ -229,11 +201,7 @@ Awards: **${user.count}**
                 })
 
 
-
                 .setTimestamp();
-
-
-
 
 
 
@@ -246,7 +214,6 @@ Awards: **${user.count}**
             ]
 
         });
-
 
 
     }
