@@ -5,12 +5,8 @@ const {
 } = require("discord.js");
 
 
-const Medal =
-    require("../../models/Medal");
-
-
-const getAwardCategory =
-    require("../../utils/getAwardCategory");
+const addAward =
+    require("../../utils/addAward");exis
 
 const awardEmojis =
     require("../../utils/awardEmojis");
@@ -381,93 +377,29 @@ module.exports = {
             for (const award of awards) {
 
 
-                const existingMedal =
-                    data.medals.find(
+                await addAward({
 
-                        medal =>
-                            medal.name === award
+                    userId:
+                        user.id,
 
-                    );
+                    username:
+                        user.username,
 
+                    award,
 
+                    reason,
 
-                if (existingMedal) {
+                    awardedBy: {
 
+                        id:
+                            interaction.user.id,
 
-                    existingMedal.count =
-                        (existingMedal.count || 1) + 1;
+                        username:
+                            interaction.user.username
 
+                    }
 
-
-                    awardedList.push({
-
-                        name: award,
-
-                        count:
-                            existingMedal.count
-
-                    });
-
-
-
-                }
-                else {
-
-
-                    data.medals.push({
-
-                        name: award,
-
-                        count: 1,
-
-                        category:
-                            getAwardCategory(
-                                award
-                            ),
-
-
-                        reason:
-                            reason ||
-                            null,
-
-
-                        awardedBy: {
-
-                            id:
-                                interaction.user.id,
-
-
-                            username:
-                                interaction.user.username
-
-                        },
-
-
-                        awardedAt:
-                            new Date()
-
-                    });
-
-
-
-                    awardedList.push({
-
-                        name: award,
-
-                        count: 1
-
-                    });
-
-
-
-                }
-
-
-            }
-
-
-
-            await data.save();
+                });
 
 
         }

@@ -1,58 +1,66 @@
 const axios = require("axios");
 
-const Medal = require("../models/Medal");
 const TrelloSync = require("../models/TrelloSync");
 
-const GetAwardInfo =
-    require("./getAwardCategory");
+const addAward =
+    require("./addAward");
+
 
 
 async function getTrelloLists() {
 
-    const response = await axios.get(
+    const response =
+        await axios.get(
 
-        `https://api.trello.com/1/boards/${process.env.TRELLO_BOARD_ID}/lists`,
+            `https://api.trello.com/1/boards/${process.env.TRELLO_BOARD_ID}/lists`,
 
-        {
-            params: {
+            {
+                params: {
 
-                key:
-                    process.env.TRELLO_KEY,
+                    key:
+                        process.env.TRELLO_KEY,
 
-                token:
-                    process.env.TRELLO_TOKEN
+                    token:
+                        process.env.TRELLO_TOKEN
+
+                }
 
             }
-        }
 
-    );
+        );
 
 
     return response.data;
 
 }
+
+
 
 
 
 async function getCardsFromList(listId) {
 
-    const response = await axios.get(
 
-        `https://api.trello.com/1/lists/${listId}/cards`,
+    const response =
+        await axios.get(
 
-        {
-            params: {
+            `https://api.trello.com/1/lists/${listId}/cards`,
 
-                key:
-                    process.env.TRELLO_KEY,
+            {
 
-                token:
-                    process.env.TRELLO_TOKEN
+                params: {
+
+                    key:
+                        process.env.TRELLO_KEY,
+
+                    token:
+                        process.env.TRELLO_TOKEN
+
+                }
 
             }
-        }
 
-    );
+        );
 
 
     return response.data;
@@ -61,9 +69,15 @@ async function getCardsFromList(listId) {
 
 
 
+
+
+
+
 function findRobloxUser(guild, robloxName) {
 
+
     return guild.members.cache.find(member => {
+
 
         const names = [
 
@@ -80,53 +94,68 @@ function findRobloxUser(guild, robloxName) {
         );
 
 
+
         return names.includes(
+
             robloxName.toLowerCase()
+
         );
 
+
     });
+
 
 }
 
 
 
-function getRecipientCount(card) {
 
-    if (
-        !card.labels ||
-        card.labels.length === 0
-    ) {
 
-        return 1;
+
+
+
+function getAwardCount(labels = []) {
+
+
+    for (const label of labels) {
+
+
+        const text =
+            label.name || "";
+
+
+
+        const match =
+            text.match(
+                /(\d+)\s*time/i
+            );
+
+
+
+        if (match) {
+
+            return Number(match[1]);
+
+        }
+
+
+
+        const xMatch =
+            text.match(
+                /x(\d+)/i
+            );
+
+
+
+        if (xMatch) {
+
+            return Number(xMatch[1]);
+
+        }
+
 
     }
 
-
-    const labels =
-
-        card.labels
-
-            .map(label =>
-                label.name.toLowerCase()
-            )
-
-            .join(" ");
-
-
-
-    const match =
-        labels.match(
-            /(\d+)\s*time/
-        );
-
-
-    if (match) {
-
-        return Number(
-            match[1]
-        );
-
-    }
 
 
     return 1;
@@ -135,52 +164,50 @@ function getRecipientCount(card) {
 
 
 
-function isIgnoredCard(name) {
-
-    const ignored = [
-
-        "SOVIET UNION AWARDS TRELLO",
-
-        "RULES OF WEAR",
-
-        "MANAGEMENT",
-
-        "HONORARY TITLE",
-
-        "RECIPIENTS:",
-
-        "MILITARY ORDER",
-
-        "MILITARY AND CIVIL ORDER",
-
-        "CIVIL ORDER",
-
-        "MILITARY MEDAL"
-
-    ];
 
 
-    return ignored.includes(
-        name.toUpperCase()
-    );
+
+
+function cleanName(name) {
+
+
+    return name
+
+        .trim()
+
+        .replace(
+            /\s+/g,
+            " "
+        );
+
 
 }
 
 
 
+
+
+
+
+
 async function syncTrelloAwards(client, guildId) {
 
+
     let synced = 0;
+
     let failed = 0;
 
 
+
     try {
+
 
 
         const guild =
             client.guilds.cache.get(
                 guildId
             );
+
 
 
         if (!guild) {
@@ -195,6 +222,7 @@ async function syncTrelloAwards(client, guildId) {
 
 
 
+
         console.log(
             "🛰️ Starting Trello award sync..."
         );
@@ -205,8 +233,10 @@ async function syncTrelloAwards(client, guildId) {
 
 
 
+
         const lists =
             await getTrelloLists();
+
 
 
 
@@ -214,10 +244,12 @@ async function syncTrelloAwards(client, guildId) {
         for (const list of lists) {
 
 
-            const awardInfo =
-                GetAwardInfo(
+
+            const awardName =
+                cleanName(
                     list.name
                 );
+
 
 
 
@@ -228,35 +260,59 @@ async function syncTrelloAwards(client, guildId) {
 
 
 
+
+
             for (const card of cards) {
 
 
+
                 const robloxName =
-                    card.name.trim();
+                    cleanName(
+                        card.name
+                    );
+
+
+
 
 
 
                 if (
-                    isIgnoredCard(
-                        robloxName
+
+                    [
+
+                        "honorary title",
+
+                        "recipients:",
+
+                        "military order",
+
+                        "civil order",
+
+                        "military medal",
+
+                        "soviet union awards trello",
+
+                        "rules of wear",
+
+                        "management"
+
+                    ]
+
+                    .includes(
+                        robloxName.toLowerCase()
                     )
+
                 ) {
 
+
                     continue;
+
 
                 }
 
 
 
-                if (
-                    robloxName.toLowerCase()
-                    ===
-                    list.name.toLowerCase()
-                ) {
 
-                    continue;
-
-                }
 
 
 
@@ -268,124 +324,89 @@ async function syncTrelloAwards(client, guildId) {
 
 
 
+
                 if (!member) {
 
+
                     failed++;
+
 
                     console.log(
                         `⚠️ User not found: ${robloxName}`
                     );
 
+
                     continue;
 
+
                 }
+
+
+
 
 
 
                 const count =
-                    getRecipientCount(
-                        card
+                    getAwardCount(
+                        card.labels
                     );
 
 
 
-                const existing =
-                    await Medal.findOne({
+
+
+                for (
+                    let i = 0;
+                    i < count;
+                    i++
+                ) {
+
+
+
+                    await addAward({
 
                         userId:
                             member.id,
 
-                        "medals.trelloCardId":
-                            card.id
+
+                        username:
+
+                            member.nickname ||
+
+                            member.user.username,
+
+
+                        award:
+                            awardName,
+
+
+                        reason:
+
+                            card.desc ||
+
+                            "No reason provided",
+
+
+
+                        awardedBy: {
+
+                            id:
+                                "Trello",
+
+
+                            username:
+                                "Trello Sync"
+
+                        }
 
                     });
 
-
-
-                if (existing) {
-
-                    continue;
 
                 }
 
 
 
 
-                await Medal.findOneAndUpdate(
-
-                    {
-                        userId:
-                            member.id
-                    },
-
-
-                    {
-
-                        $setOnInsert: {
-
-                            username:
-
-                                member.nickname ||
-
-                                member.user.username
-
-                        },
-
-
-                        $push: {
-
-                            medals: {
-
-                                trelloCardId:
-                                    card.id,
-
-
-                                name:
-                                    awardInfo.name,
-
-
-                                category:
-                                    awardInfo.category,
-
-
-                                count:
-                                    count,
-
-
-                                reason:
-
-                                    card.desc ||
-
-                                    "No reason provided",
-
-
-                                awardedBy: {
-
-                                    id:
-                                        "Trello",
-
-                                    username:
-                                        "Trello Sync"
-
-                                },
-
-
-                                awardedAt:
-                                    new Date()
-
-                            }
-
-                        }
-
-                    },
-
-
-                    {
-                        upsert:
-                            true
-                    }
-
-                );
 
 
 
@@ -393,16 +414,24 @@ async function syncTrelloAwards(client, guildId) {
 
 
 
+
                 console.log(
 
-                    `✅ ${awardInfo.name} x${count} -> ${robloxName}`
+                    `✅ ${awardName} x${count} -> ${robloxName}`
 
                 );
 
 
+
+
             }
 
+
         }
+
+
+
+
 
 
 
@@ -426,13 +455,15 @@ async function syncTrelloAwards(client, guildId) {
 
             },
 
-
             {
-                upsert:
-                    true
+
+                upsert:true
+
             }
 
         );
+
+
 
 
 
@@ -444,18 +475,20 @@ async function syncTrelloAwards(client, guildId) {
 
 
 
+
     }
 
     catch(error) {
 
 
+
         console.log(
 
             "❌ Trello sync failed:",
-
             error.message
 
         );
+
 
 
 
@@ -476,17 +509,21 @@ async function syncTrelloAwards(client, guildId) {
 
             },
 
-
             {
-                upsert:
-                    true
+
+                upsert:true
+
             }
 
         );
 
+
     }
 
+
+
 }
+
 
 
 
