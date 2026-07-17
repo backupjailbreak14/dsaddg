@@ -3,6 +3,7 @@ const getAwardCategory = require("./getAwardCategory");
 const awards = require("./awards");
 
 
+
 function normalizeAward(name) {
 
     const found = [
@@ -26,6 +27,8 @@ function normalizeAward(name) {
 
 
 
+
+
 async function addAward({
 
     userId,
@@ -45,12 +48,15 @@ async function addAward({
 
 
 
+
     let data =
         await Medal.findOne({
 
             userId
 
         });
+
+
 
 
 
@@ -72,8 +78,11 @@ async function addAward({
 
 
 
+
     data.username =
         username;
+
+
 
 
 
@@ -82,11 +91,19 @@ async function addAward({
         data.medals.find(
 
             medal =>
+
                 medal.name.toLowerCase()
                 ===
                 cleanAward.toLowerCase()
 
+                &&
+
+                medal.source === "manual"
+
         );
+
+
+
 
 
 
@@ -96,6 +113,7 @@ async function addAward({
 
         existing.count =
             (existing.count || 1) + 1;
+
 
 
         existing.reason =
@@ -124,10 +142,18 @@ async function addAward({
                 ),
 
 
+
+            source:
+                "manual",
+
+
+
             reason,
 
 
+
             awardedBy,
+
 
 
             awardedAt:
@@ -141,6 +167,7 @@ async function addAward({
 
 
 
+
     await data.save();
 
 
@@ -149,6 +176,8 @@ async function addAward({
 
 
 }
+
+
 
 
 

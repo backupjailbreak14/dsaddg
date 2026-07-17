@@ -6,10 +6,13 @@ const {
 
 
 const addAward =
-    require("../../utils/addAward");exis
+    require("../../utils/addAward");
+
 
 const awardEmojis =
     require("../../utils/awardEmojis");
+
+
 
 const data =
     new SlashCommandBuilder()
@@ -26,10 +29,9 @@ const data =
 
 
 
-// Add 22 users
+
 
 for (let i = 1; i <= 22; i++) {
-
 
     data.addStringOption(option =>
 
@@ -43,15 +45,13 @@ for (let i = 1; i <= 22; i++) {
 
     );
 
-
 }
 
 
 
-// Add 2 awards
+
 
 for (let i = 1; i <= 2; i++) {
-
 
     data.addStringOption(option =>
 
@@ -67,20 +67,18 @@ for (let i = 1; i <= 2; i++) {
 
     );
 
-
 }
 
 
 
 
-// =====================
-// REASON
-// =====================
 
 data.addStringOption(option =>
 
     option
+
         .setName("reason")
+
         .setDescription(
             "Reason for this award"
         )
@@ -95,7 +93,6 @@ module.exports = {
 
 
     data,
-
 
 
     async run(client, interaction) {
@@ -118,9 +115,9 @@ module.exports = {
             return interaction.reply({
 
                 content:
-                    "❌ You need the **Manage Roles** permission.",
+                    "❌ You need the Manage Roles permission.",
 
-                ephemeral: true
+                ephemeral:true
 
             });
 
@@ -133,11 +130,6 @@ module.exports = {
 
 
 
-
-
-        // =====================
-        // GET USERS
-        // =====================
 
 
         let users = [];
@@ -153,32 +145,23 @@ module.exports = {
                 );
 
 
+            if (!input)
+                continue;
 
-            if (!input) continue;
-
-
-
-            // Supports:
-            // @User
-            // <@123>
-            // 123
 
 
             const userId =
-                input.replace(
-                    /\D/g,
-                    ""
-                );
+                input.replace(/\D/g,"");
 
 
 
-            if (!userId) continue;
+            if (!userId)
+                continue;
 
 
 
             let username =
                 "Unknown User";
-
 
 
             try {
@@ -194,20 +177,16 @@ module.exports = {
                     discordUser.username;
 
 
-
-            } catch {
-
-                // User does not exist or unavailable
-
             }
+            catch {}
 
 
 
             users.push({
 
-                id: userId,
+                id:userId,
 
-                username: username
+                username
 
             });
 
@@ -218,20 +197,16 @@ module.exports = {
 
 
 
-        // Remove duplicates
 
         users =
             [
                 ...new Map(
 
-                    users.map(user =>
-
+                    users.map(u =>
                         [
-                            user.id,
-                            user
-
+                            u.id,
+                            u
                         ]
-
                     )
 
                 ).values()
@@ -240,27 +215,6 @@ module.exports = {
 
 
 
-
-
-        if (users.length === 0) {
-
-
-            return interaction.editReply(
-                "❌ Select at least one user."
-            );
-
-
-        }
-
-
-
-
-
-
-
-        // =====================
-        // GET AWARDS
-        // =====================
 
 
         let awards = [];
@@ -276,43 +230,18 @@ module.exports = {
                 );
 
 
+            if (award)
+                awards.push(award);
 
-            if (award) {
-
-                awards.push(
-                    award
-                );
-
-            }
 
         }
-
-
 
 
 
         awards =
             [
-                ...new Set(
-                    awards
-                )
+                ...new Set(awards)
             ];
-
-
-
-
-
-        if (awards.length === 0) {
-
-
-            return interaction.editReply(
-                "❌ Select at least one award."
-            );
-
-
-        }
-
-
 
 
 
@@ -328,68 +257,33 @@ module.exports = {
 
 
 
-
-
-        // =====================
-        // SAVE MEDALS
-        // =====================
-
         let awardedList = [];
 
 
+
+
+
         for (const user of users) {
-
-
-            let data =
-                await Medal.findOne({
-
-                    userId:
-                        user.id
-
-                });
-
-
-
-            if (!data) {
-
-                data =
-                    new Medal({
-
-                        userId:
-                            user.id,
-
-                        username:
-                            user.username,
-
-                        medals: []
-
-                    });
-
-            }
-
-
-
-            data.username =
-                user.username;
 
 
 
             for (const award of awards) {
 
 
+
                 await addAward({
 
-                    userId:
-                        user.id,
+                    userId:user.id,
 
-                    username:
-                        user.username,
+                    username:user.username,
 
                     award,
 
                     reason,
 
-                    awardedBy: {
+                    source:"manual",
+
+                    awardedBy:{
 
                         id:
                             interaction.user.id,
@@ -402,6 +296,19 @@ module.exports = {
                 });
 
 
+
+                awardedList.push({
+
+                    name:award,
+
+                    count:1
+
+                });
+
+
+            }
+
+
         }
 
 
@@ -410,16 +317,9 @@ module.exports = {
 
 
 
-
-        // =====================
-        // EMBED
-        // =====================
-
-
         const embed =
 
             new EmbedBuilder()
-
 
 
                 .setTitle(
@@ -427,70 +327,35 @@ module.exports = {
                 )
 
 
-
                 .setColor(
                     "#D4AF37"
                 )
 
 
+                .setDescription(
 
-                .addFields(
+                    awardedList
 
+                        .map(a =>
 
-                    {
-                        name: "Awards",
+                            `${awardEmojis[a.name] || "🏅"} ${a.name}`
 
-                        value:
+                        )
 
-                            awardedList
-                                .map(award =>
-
-                                    `${awardEmojis[award.name] || "🏅"} ${award.name}${
-                                        award.count > 1
-                                            ? ` x${award.count}`
-                                            : ""
-                                    }
-                    📂 Category: ${getAwardCategory(award.name)}`
-
-                                )
-                                .join("\n\n")
-                    },
-
-
-
-                    {
-
-                        name:
-                            "Reason",
-
-
-                        value:
-
-                            reason
-                            ||
-                            "No reason provided"
-
-
-                    },
-
-
-
-                    {
-
-                        name:
-                            "Awarded by",
-
-
-                        value:
-
-                            `${interaction.user.username} (${interaction.user.id})`
-
-
-                    }
-
+                        .join("\n")
 
                 )
 
+
+                .addFields({
+
+                    name:"Reason",
+
+                    value:
+                        reason ||
+                        "No reason provided"
+
+                })
 
 
                 .setFooter({
@@ -504,7 +369,6 @@ module.exports = {
                 })
 
 
-
                 .setTimestamp();
 
 
@@ -514,13 +378,11 @@ module.exports = {
 
         return interaction.editReply({
 
-            embeds:
-                [
-                    embed
-                ]
+            embeds:[
+                embed
+            ]
 
         });
-
 
 
     }
