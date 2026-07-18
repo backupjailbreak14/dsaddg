@@ -7,23 +7,17 @@ const {
     PermissionFlagsBits
 } = require("discord.js");
 
-
-const BingoGame =
-    require("../../models/BingoGame");
-
+const BingoGame = require("../../models/BingoGame");
 
 const {
     generateBingoCard,
     getCardLayout
 } = require("../../utils/bingoGenerator");
 
-
-const config =
-    require("../../config/bingoConfig");
+const config = require("../../config/bingoConfig");
 
 
-
-module.exports = {
+const bingoCommand = {
 
     data: new SlashCommandBuilder()
 
@@ -31,20 +25,17 @@ module.exports = {
 
         .setDescription("Bingo game commands")
 
-
         .addSubcommand(sub =>
             sub
                 .setName("start")
                 .setDescription("Start a bingo event")
         )
 
-
         .addSubcommand(sub =>
             sub
                 .setName("join")
                 .setDescription("Join the bingo event")
         )
-
 
         .addSubcommand(sub =>
             sub
@@ -62,19 +53,19 @@ module.exports = {
 
 
 
-        // ==========================
+        // =========================
         // START BINGO
-        // ==========================
+        // =========================
 
 
-        if(command === "start"){
+        if(command === "start") {
 
 
             if(
                 !interaction.member.permissions.has(
                     PermissionFlagsBits.ManageGuild
                 )
-            ){
+            ) {
 
                 return interaction.reply({
 
@@ -89,8 +80,7 @@ module.exports = {
 
 
 
-
-            const existing =
+            const existingGame =
                 await BingoGame.findOne({
 
                     active:true
@@ -99,7 +89,7 @@ module.exports = {
 
 
 
-            if(existing){
+            if(existingGame) {
 
                 return interaction.reply({
 
@@ -114,55 +104,88 @@ module.exports = {
 
 
 
-
-            const starterCard =
+            const organizerCard =
                 generateBingoCard();
 
 
 
-            await BingoGame.create({
+            const game =
+                await BingoGame.create({
 
-                active:true,
+                    active:true,
 
-                channelId:
-                interaction.channel.id,
-
-
-                startedBy:
-                interaction.user.id,
+                    channelId:
+                    interaction.channel.id,
 
 
-                registrationOpen:true,
+                    startedBy:
+                    interaction.user.id,
 
 
-                drawnNumbers:[],
+                    registrationOpen:true,
 
 
-                claims:[],
+                    currentNumber:null,
 
 
-                checkingClaim:false,
+                    drawnNumbers:[],
 
 
-                players:[
-
-                    {
-
-                        userId:
-                        interaction.user.id,
+                    checkingClaim:false,
 
 
-                        card:
-                        starterCard,
+                    players:[
+
+                        {
+
+                            userId:
+                            interaction.user.id,
 
 
-                        marked:[]
+                            card:
+                            organizerCard,
 
-                    }
 
-                ]
+                            marked:[]
 
-            });
+                        }
+
+                    ],
+
+
+                    claims:[]
+
+                });
+
+
+
+
+            const embed =
+                new EmbedBuilder()
+
+                .setTitle(
+                    "🎱 Bingo Registration Open!"
+                )
+
+                .setDescription(
+`
+A new bingo event has started!
+
+Registration closes in **30 seconds**.
+
+Use:
+
+\`/bingo join\`
+
+to join the game.
+
+Players:
+
+${interaction.user}
+`
+                )
+
+                .setColor("#3498db");
 
 
 
@@ -170,32 +193,32 @@ module.exports = {
             await interaction.reply({
 
                 embeds:[
+                    embed
+                ],
 
-                    new EmbedBuilder()
+                components:[
 
-                    .setTitle(
-                        "🎱 Bingo Registration Open!"
+                    new ActionRowBuilder()
+
+                    .addComponents(
+
+                        new ButtonBuilder()
+
+                        .setCustomId(
+                            "bingo_status"
+                        )
+
+                        .setLabel(
+                            "Players: 1"
+                        )
+
+                        .setStyle(
+                            ButtonStyle.Secondary
+                        )
+
+                        .setDisabled(true)
+
                     )
-
-                    .setDescription(
-`
-A new bingo event has started!
-
-Players have **30 seconds** to join.
-
-Use:
-
-\`/bingo join\`
-
-to receive your personal bingo card.
-
-Current players:
-
-${interaction.user}
-`
-                    )
-
-                    .setColor("#3498db")
 
                 ]
 
@@ -203,567 +226,618 @@ ${interaction.user}
 
 
 
-            await sendCard(
 
-                interaction,
+            setTimeout(async()=>{
 
-                starterCard
 
-            );
+                const currentGame =
+                    await BingoGame.findOne({
 
-                            console.log("Bingo registration timer started");
+                        active:true
 
-                            setTimeout(async()=>{
+                    });
 
-                                console.log("Bingo registration ended");
 
-                                const game =
-                                    await BingoGame.findOne({
-                                        active:true
-                                    });
 
-                                console.log("Game found:", game ? "YES" : "NO");
+                if(!currentGame)
+                    return;
 
 
-                            
 
+                currentGame.registrationOpen =
+                    false;
 
 
-                            if(!game)
-                                return;
 
+                await currentGame.save();
 
 
-                            game.registrationOpen = false;
 
 
-                            await game.save();
+                const startEmbed =
+                    new EmbedBuilder()
 
+                    .setTitle(
+                        "🎱 Bingo Starting!"
+                    )
 
+                    .setDescription(
+`
+Registration closed.
 
+Players:
 
-                            await interaction.channel.send({
+**${currentGame.players.length}**
 
-                                embeds:[
+The first number will appear soon.
+`
+                    )
 
-                                    new EmbedBuilder()
+                    .setColor("#00ff00");
 
-                                    .setTitle(
-                                        "🎱 Bingo Starting!"
-                                    )
 
-                                    .setDescription(
-            `
-            Registration closed.
 
-            Players:
 
-            **${game.players.length}**
+                await interaction.editReply({
 
-            The first number will appear soon.
-            `
-                                    )
+                    embeds:[
+                        startEmbed
+                    ]
 
-                                    .setColor("#00FF00")
+                });
 
-                                ]
 
-                            });
 
+                startDrawing(
 
+                    client,
 
+                    interaction,
 
+                    game._id
 
-                            startDrawing(
+                );
 
-                                client,
 
-                                interaction.channel
 
-                            );
+            },30000);
 
 
 
-                        },30000);
 
+            return;
 
+        }
+        // =========================
+        // JOIN BINGO
+        // =========================
 
 
+        if(command === "join") {
 
-                        return;
 
+            const game =
+                await BingoGame.findOne({
 
-                    }
+                    active:true
 
+                });
 
 
 
+            if(!game) {
 
-                    // ==========================
-                    // JOIN BINGO
-                    // ==========================
+                return interaction.reply({
 
+                    content:
+                    "❌ There is no active bingo game.",
 
-                    if(command === "join"){
+                    ephemeral:true
 
+                });
 
+            }
 
-                        const game =
-                            await BingoGame.findOne({
 
-                                active:true
 
-                            });
+            if(!game.registrationOpen) {
 
+                return interaction.reply({
 
+                    content:
+                    "❌ Registration is closed.",
 
+                    ephemeral:true
 
+                });
 
-                        if(!game){
+            }
 
-                            return interaction.reply({
 
-                                content:
-                                "❌ There is no active bingo event.",
 
-                                ephemeral:true
 
-                            });
+            const alreadyJoined =
+                game.players.find(
 
-                        }
+                    player =>
+                    player.userId === interaction.user.id
 
+                );
 
 
 
+            if(alreadyJoined) {
 
+                return interaction.reply({
 
-                        if(!game.registrationOpen){
+                    content:
+                    "❌ You already joined bingo.",
 
+                    ephemeral:true
 
-                            return interaction.reply({
+                });
 
-                                content:
-                                "❌ Registration is already closed.",
+            }
 
-                                ephemeral:true
 
-                            });
 
-                        }
 
+            const card =
+                generateBingoCard();
 
 
 
 
-                        const alreadyJoined =
+            game.players.push({
 
-                            game.players.find(
+                userId:
+                interaction.user.id,
 
-                                player =>
 
-                                player.userId === interaction.user.id
+                card,
 
-                            );
 
+                marked:[]
 
+            });
 
 
 
-                        if(alreadyJoined){
 
+            await game.save();
 
-                            return interaction.reply({
 
-                                content:
-                                "❌ You already joined bingo.",
 
-                                ephemeral:true
 
-                            });
+            return interaction.reply({
 
-                        }
+                content:
 
+                `✅ ${interaction.user} joined bingo!`
 
+            });
 
 
+        }
 
 
-                        const card =
-                            generateBingoCard();
 
 
 
 
+        // =========================
+        // STOP BINGO
+        // =========================
 
 
-                        game.players.push({
+        if(command === "stop") {
 
-                            userId:
-                            interaction.user.id,
 
+            const game =
+                await BingoGame.findOne({
 
-                            card,
+                    active:true
 
+                });
 
-                            marked:[]
 
-                        });
 
+            if(!game) {
 
+                return interaction.reply({
 
+                    content:
+                    "❌ There is no active bingo game.",
 
+                    ephemeral:true
 
-                        await game.save();
+                });
 
+            }
 
 
 
 
-                        // PUBLIC MESSAGE IN CHANNEL
+            if(
+                game.startedBy !== interaction.user.id
+            ) {
 
-                        await interaction.reply({
+                return interaction.reply({
 
-                            content:
+                    content:
+                    "❌ Only the organizer can stop bingo.",
 
-                            `✅ ${interaction.user} joined bingo!`
+                    ephemeral:true
 
-                        });
+                });
 
+            }
 
 
 
 
-                        // PRIVATE CARD
-
-                        await sendCard(
-
-                            interaction,
-
-                            card
-
-                        );
-
-
-
-
-                        return;
-
-
-                    }
-
-
-
-
-
-
-
-                    // ==========================
-                    // STOP BINGO
-                    // ==========================
-
-
-                    if(command === "stop"){
-
-
-
-                        const game =
-                            await BingoGame.findOne({
-
-                                active:true
-
-                            });
-
-
-
-
-
-                        if(!game){
-
-
-                            return interaction.reply({
-
-                                content:
-                                "❌ There is no active bingo event.",
-
-                                ephemeral:true
-
-                            });
-
-                        }
-
-
-
-
-
-
-                        if(
-
-                            game.startedBy !== interaction.user.id
-
-                        ){
-
-
-                            return interaction.reply({
-
-                                content:
-                                "❌ Only the person who started bingo can stop it.",
-
-                                ephemeral:true
-
-                            });
-
-                        }
-
-
-
-
-
-
-
-                        await BingoGame.deleteMany({
-
-                            active:true
-
-                        });
-
-
-
-
-
-
-                        return interaction.reply({
-
-                            content:
-
-                            "🛑 Bingo event stopped."
-
-                        });
-
-
-                    }
-
-
-                }
-
-            };
-
-
-// =====================================
-// NUMBER DRAW SYSTEM
-// =====================================
-
-async function startDrawing(
-
-    client,
-
-    channel
-
-){
-    console.log("Starting bingo drawing system");
-
-
-    let bingoMessage = null;
-
-
-
-    const interval = setInterval(async()=>{
-
-
-        const game =
-
-            await BingoGame.findOne({
+            await BingoGame.deleteMany({
 
                 active:true
 
             });
-        console.log("Drawing new bingo number...");
 
 
 
+            return interaction.reply({
 
-        if(!game){
+                content:
+                "🛑 Bingo stopped."
 
-
-            clearInterval(interval);
-
-            return;
+            });
 
 
         }
 
 
 
+        }
 
-
-        // Pause tijdens claim check
-
-        if(game.checkingClaim)
-
-            return;
+        };
 
 
 
 
 
+        // =================================
+        // NUMBER DRAW SYSTEM
+        // =================================
 
 
-        // Alle nummers op
+        async function startDrawing(
 
-        if(
+        client,
 
-            game.drawnNumbers.length >= config.MAX_NUMBER
+        interaction,
 
-        ){
+        gameId
+
+        ) {
 
 
-            clearInterval(interval);
+        const channel =
+        interaction.channel;
 
 
-            await finishGame(
 
-                client,
+        let bingoMessage = null;
 
-                channel,
 
-                game
+
+
+        const interval =
+        setInterval(async()=>{
+
+
+            const game =
+                await BingoGame.findById(gameId);
+
+
+
+
+            if(!game) {
+
+                clearInterval(interval);
+
+                return;
+
+            }
+
+
+
+
+            if(game.checkingClaim)
+                return;
+
+
+
+
+            if(
+                game.drawnNumbers.length >= config.MAX_NUMBER
+            ) {
+
+
+                clearInterval(interval);
+
+
+                await finishGame(
+
+                    channel,
+
+                    game
+
+                );
+
+
+                return;
+
+            }
+
+
+
+
+
+            let number;
+
+
+
+
+            do {
+
+
+                number =
+                    Math.floor(
+
+                        Math.random() *
+                        config.MAX_NUMBER
+
+                    ) + 1;
+
+
+
+            }
+
+            while(
+
+                game.drawnNumbers.includes(number)
 
             );
 
 
-            return;
+
+
+
+            game.currentNumber =
+                number;
+
+
+
+            game.drawnNumbers.push(number);
+
+
+
+            await game.save();
+
+
+
+
+
+            const embed =
+
+                new EmbedBuilder()
+
+                .setTitle(
+                    "🎱 Bingo Game"
+                )
+
+                .setDescription(
+        `
+        ## Current Number
+
+        # **${number}**
+
+
+        Players:
+
+        **${game.players.length}**
+
+
+        Click the button below to open your bingo card.
+        `
+                )
+
+                .setColor("#FFD700")
+
+                .setFooter({
+
+                    text:
+                    `Numbers drawn: ${game.drawnNumbers.length}/${config.MAX_NUMBER}`
+
+                });
+
+
+
+
+
+            const buttonRow =
+
+                new ActionRowBuilder()
+
+                .addComponents(
+
+                    new ButtonBuilder()
+
+                    .setCustomId(
+                        "open_bingo_card"
+                    )
+
+                    .setLabel(
+                        "🎱 Open My Card"
+                    )
+
+                    .setStyle(
+                        ButtonStyle.Primary
+                    )
+
+                );
+
+
+
+
+
+
+            if(!bingoMessage) {
+
+
+                bingoMessage =
+                    await channel.send({
+
+                        embeds:[
+                            embed
+                        ],
+
+                        components:[
+                            buttonRow
+                        ]
+
+                    });
+
+
+
+            }
+
+            else {
+
+
+                await bingoMessage.edit({
+
+                    embeds:[
+                        embed
+                    ],
+
+                    components:[
+                        buttonRow
+                    ]
+
+                });
+
+
+            }
+
+
+
+
+        }, config.DRAW_INTERVAL);
+
 
 
         }
+// =================================
+// OPEN PRIVATE BINGO CARD
+// =================================
+
+async function openBingoCard(interaction) {
+
+
+    const game =
+        await BingoGame.findOne({
+
+            active:true
+
+        });
+
+
+
+    if(!game) {
+
+        return interaction.reply({
+
+            content:
+            "❌ Bingo game is no longer active.",
+
+            ephemeral:true
+
+        });
+
+    }
 
 
 
 
+    const player =
+        game.players.find(
 
-
-        let number;
-
-
-
-        do{
-
-
-            number =
-
-                Math.floor(
-
-                    Math.random() * config.MAX_NUMBER
-
-                ) + 1;
-
-
-
-        }
-
-        while(
-
-            game.drawnNumbers.includes(number)
+            p =>
+            p.userId === interaction.user.id
 
         );
 
 
 
 
+    if(!player) {
+
+        return interaction.reply({
+
+            content:
+            "❌ You are not part of this bingo game.",
+
+            ephemeral:true
+
+        });
+
+    }
 
 
-        game.currentNumber = number;
-
-
-        game.drawnNumbers.push(number);
 
 
 
-        await game.save();
+    const rows =
+        createCardButtons(
+
+            player.card,
+
+            player.marked
+
+        );
 
 
 
 
+    await interaction.reply({
 
-
-
-        const embed =
+        embeds:[
 
             new EmbedBuilder()
 
-
             .setTitle(
-
-                "🎱 Bingo Game"
-
+                "🎱 Your Bingo Card"
             )
-
 
             .setDescription(
-
 `
-## Current Number
+This card belongs to you.
 
-# **${number}**
+Click numbers to mark them.
 
-
-Players:
-
-**${game.players.length}**
-
-
-Check your personal bingo card!
+Press BINGO when you have a winning line.
 `
-
             )
 
+            .setColor("#3498db")
 
-            .setColor("#FFD700")
+        ],
 
+        components:rows,
 
-            .setFooter({
+        ephemeral:true
 
-                text:
-
-                `Numbers drawn: ${game.drawnNumbers.length}/${config.MAX_NUMBER}`
-
-            });
-
-
-
-
-
-
-
-        if(!bingoMessage){
-
-
-            bingoMessage =
-
-                await channel.send({
-
-                    embeds:[embed]
-
-                });
-
-
-        }
-
-        else{
-
-
-            await bingoMessage.edit({
-
-                embeds:[embed]
-
-            });
-
-
-        }
-
-
-
-
-
-    }, config.DRAW_INTERVAL);
+    });
 
 
 }
@@ -772,20 +846,17 @@ Check your personal bingo card!
 
 
 
+// =================================
+// CREATE CARD BUTTONS
+// =================================
 
+function createCardButtons(
 
-// =====================================
-// SEND PERSONAL BINGO CARD
-// =====================================
+    card,
 
+    marked
 
-async function sendCard(
-
-    interaction,
-
-    card
-
-){
+) {
 
 
     const buttons = [];
@@ -793,17 +864,15 @@ async function sendCard(
 
 
     const layout =
-
         getCardLayout(card);
 
 
 
 
+    for(const number of layout) {
 
-    for(const number of layout){
 
-
-        if(number === "FREE"){
+        if(number === "FREE") {
 
 
             buttons.push(
@@ -829,7 +898,7 @@ async function sendCard(
 
         }
 
-        else{
+        else {
 
 
             buttons.push(
@@ -845,500 +914,8 @@ async function sendCard(
                 )
 
                 .setStyle(
-                    ButtonStyle.Secondary
-                )
 
-            );
-
-
-        }
-
-
-    }
-
-
-
-
-
-    const rows = [];
-
-
-
-
-
-    for(
-        let i = 0;
-        i < buttons.length;
-        i += 5
-    ){
-
-        const row = new ActionRowBuilder();
-
-        row.addComponents(
-            buttons.slice(i, i + 5)
-        );
-
-        rows.push(row);
-
-    }
-
-
-
-
-
-
-    
-
-
-
-
-
-    const message =
-
-        await interaction.followUp({
-
-
-            embeds:[
-
-
-                new EmbedBuilder()
-
-                .setTitle(
-
-                    "🎱 Your Bingo Card"
-
-                )
-
-                .setDescription(
-
-`
-This card belongs only to you.
-
-Click numbers to mark them.
-
-Click again to remove a mark.
-
-⚠️ The bot checks only when you press BINGO.
-`
-
-                )
-
-                .setColor("#3498db")
-
-
-            ],
-
-
-
-            components:rows,
-
-
-            flags: 64,
-
-
-            fetchReply:true
-
-
-        });
-
-
-    // Send separate bingo claim button
-    const claimMessage = await interaction.followUp({
-
-        content:
-        "🎱 Press the button below when you have Bingo.",
-
-        components:[
-
-            new ActionRowBuilder()
-
-            .addComponents(
-
-                new ButtonBuilder()
-
-                .setCustomId(
-                    "bingo_claim"
-                )
-
-                .setLabel(
-                    "🎱 BINGO"
-                )
-
-                .setStyle(
-                    ButtonStyle.Danger
-                )
-
-            )
-
-        ],
-
-        flags:64,
-
-        fetchReply:true
-
-    });
-    // Collect bingo claim button
-    const claimCollector =
-        claimMessage.createMessageComponentCollector({
-
-            time:3600000
-
-        });
-
-
-    claimCollector.on(
-
-        "collect",
-
-        async i => {
-
-
-            if(i.user.id !== interaction.user.id){
-
-                return i.reply({
-
-                    content:
-                    "❌ This is not your bingo card.",
-
-                    ephemeral:true
-
-                });
-
-            }
-
-
-            if(i.customId === "bingo_claim"){
-
-                await claimBingo(i);
-
-            }
-
-
-        }
-
-    );
-        const collector =
-
-            message.createMessageComponentCollector({
-
-                time:3600000
-
-            });
-
-
-
-
-
-        collector.on(
-
-            "collect",
-
-            async i => {
-
-                if(i.user.id !== interaction.user.id){
-
-                    return i.reply({
-
-                        content:
-                        "❌ This is not your bingo card.",
-
-                        ephemeral:true
-
-                    });
-
-                }
-
-                const game =
-                    await BingoGame.findOne({
-                        active:true
-                    });
-
-
-                if(!game){
-
-                    return i.reply({
-
-                        content:
-                        "❌ This bingo game has ended.",
-
-                        ephemeral:true
-
-                    });
-
-                }
-
-
-
-
-                
-
-
-
-
-
-                const player =
-
-                    game.players.find(
-
-                        p =>
-
-                        p.userId === i.user.id
-
-                    );
-
-
-
-
-
-                if(!player){
-
-                    return i.reply({
-
-                        content:
-                        "❌ You are not part of this bingo game.",
-
-                        ephemeral:true
-
-                    });
-
-                }
-
-
-
-
-
-
-                
-
-
-
-
-
-
-
-                // Alleen bingo buttons
-
-                if(
-
-                    !i.customId.startsWith(
-
-                        "bingo_"
-
-                    )
-
-                )
-
-                    return;
-
-
-
-
-
-
-
-                const number =
-
-                    Number(
-
-                        i.customId.replace(
-
-                            "bingo_",
-
-                            ""
-
-                        )
-
-                    );
-
-
-
-
-
-
-
-
-                // Mark aan/uit
-
-                if(
-
-                    player.marked.includes(number)
-
-                ){
-
-
-                    player.marked =
-
-                        player.marked.filter(
-
-                            n => n !== number
-
-                        );
-
-
-                }
-
-                else{
-
-
-                    player.marked.push(number);
-
-
-                }
-
-
-
-
-
-
-
-                await game.save();
-
-
-
-
-
-
-
-                await refreshCard(
-
-                    i,
-
-                    player.card,
-
-                    player.marked
-
-                );
-
-
-
-            }
-
-
-        );
-
-
-
-    }
-
-
-
-
-
-
-
-    // =====================================
-    // REFRESH CARD BUTTONS
-    // =====================================
-
-
-    async function refreshCard(
-
-        interaction,
-
-        card,
-
-        marked
-
-    ){
-
-
-
-        const layout =
-
-            getCardLayout(card);
-
-
-
-
-
-        const buttons = [];
-
-
-
-
-
-
-        for(const number of layout){
-
-
-
-            if(number === "FREE"){
-
-
-
-                buttons.push(
-
-
-                    new ButtonBuilder()
-
-                    .setCustomId(
-
-                        "free"
-
-                    )
-
-                    .setLabel(
-
-                        "⭐"
-
-                    )
-
-                    .setStyle(
-
-                        ButtonStyle.Success
-
-                    )
-
-                    .setDisabled(true)
-
-
-                );
-
-
-
-                continue;
-
-
-            }
-
-
-
-
-
-
-
-            const selected =
-
-                marked.includes(number);
-
-
-
-
-
-
-
-
-            buttons.push(
-
-
-                new ButtonBuilder()
-
-                .setCustomId(
-
-                    `bingo_${number}`
-
-                )
-
-                .setLabel(
-
-                    String(number)
-
-                )
-
-                .setStyle(
-
-
-                    selected
+                    marked.includes(number)
 
                     ?
 
@@ -1348,68 +925,98 @@ Click again to remove a mark.
 
                     ButtonStyle.Secondary
 
-
                 )
 
-
             );
 
 
-
         }
-
-
-
-
-
-
-
-
-        const rows = [];
-
-
-
-
-
-
-
-        for(
-            let i = 0;
-            i < buttons.length;
-            i += 5
-        ){
-
-            const row = new ActionRowBuilder();
-
-            row.addComponents(
-                buttons.slice(i, i + 5)
-            );
-
-            rows.push(row);
-
-        }
-
-
-
-
-
-        await interaction.update({
-
-            components:rows
-
-        });
 
 
     }
-// =====================================
-// BINGO CLAIM SYSTEM
-// =====================================
 
-async function claimBingo(interaction){
+
+
+
+    const rows = [];
+
+
+
+    for(
+        let i = 0;
+        i < buttons.length;
+        i += 5
+    ) {
+
+
+        const row =
+            new ActionRowBuilder();
+
+
+
+        row.addComponents(
+
+            buttons.slice(
+                i,
+                i + 5
+            )
+
+        );
+
+
+
+        rows.push(row);
+
+
+    }
+
+
+
+    rows.push(
+
+        new ActionRowBuilder()
+
+        .addComponents(
+
+            new ButtonBuilder()
+
+            .setCustomId(
+                "bingo_claim"
+            )
+
+            .setLabel(
+                "🎱 BINGO"
+            )
+
+            .setStyle(
+                ButtonStyle.Danger
+            )
+
+        )
+
+    );
+
+
+
+    return rows;
+
+
+}
+
+
+
+
+
+
+
+// =================================
+// MARK NUMBER
+// =================================
+
+async function markNumber(interaction) {
 
 
     const game =
-
         await BingoGame.findOne({
 
             active:true
@@ -1418,38 +1025,148 @@ async function claimBingo(interaction){
 
 
 
-
     if(!game)
-
         return;
 
 
 
+    const player =
+        game.players.find(
+
+            p =>
+            p.userId === interaction.user.id
+
+        );
 
 
 
-    const alreadyClaimed =
+    if(!player) {
 
-        game.claims.find(
+        return interaction.reply({
 
-            claim =>
+            content:
+            "❌ You are not playing.",
 
-            claim.userId === interaction.user.id
+            ephemeral:true
+
+        });
+
+    }
+
+
+
+
+    const number =
+        Number(
+
+            interaction.customId.replace(
+
+                "bingo_",
+
+                ""
+
+            )
 
         );
 
 
 
 
+    if(
+        player.marked.includes(number)
+    ) {
 
-    if(alreadyClaimed){
+
+        player.marked =
+            player.marked.filter(
+
+                n =>
+                n !== number
+
+            );
+
+
+    }
+
+    else {
+
+
+        player.marked.push(number);
+
+
+    }
+
+
+
+
+    await game.save();
+
+
+
+    await interaction.update({
+
+        components:
+
+        createCardButtons(
+
+            player.card,
+
+            player.marked
+
+        )
+
+    });
+
+
+}
+
+
+
+
+
+
+
+// =================================
+// CLAIM BINGO
+// =================================
+
+async function claimBingo(interaction) {
+
+
+    const game =
+        await BingoGame.findOne({
+
+            active:true
+
+        });
+
+
+
+    if(!game)
+        return;
+
+
+
+    const player =
+        game.players.find(
+
+            p =>
+            p.userId === interaction.user.id
+
+        );
+
+
+
+
+    if(
+        !checkBingo(player)
+    ) {
 
 
         return interaction.reply({
 
             content:
-
-            "⚠️ You already claimed bingo.",
+            "❌ You do not have bingo.",
 
             ephemeral:true
 
@@ -1462,23 +1179,7 @@ async function claimBingo(interaction){
 
 
 
-
-    game.claims.push({
-
-        userId:
-
-        interaction.user.id
-
-    });
-
-
-
-
-
-    // pause drawing
-
     game.checkingClaim = true;
-
 
 
     await game.save();
@@ -1487,10 +1188,7 @@ async function claimBingo(interaction){
 
 
 
-
-
     const channel =
-
         interaction.client.channels.cache.get(
 
             game.channelId
@@ -1500,497 +1198,57 @@ async function claimBingo(interaction){
 
 
 
-
-
     await channel.send({
 
-        content:
+        embeds:[
 
-`
-🎱 **Bingo claim!**
+            new EmbedBuilder()
 
-${interaction.user} pressed BINGO.
+            .setTitle(
+                "🎉 Bingo Winner!"
+            )
 
-Checking card...
-`
+            .setDescription(
+
+                `${interaction.user} won bingo!`
+
+            )
+
+            .setColor("#FFD700")
+
+        ]
 
     });
 
 
 
 
+    try {
 
 
+        const member =
+            await channel.guild.members.fetch(
 
-    setTimeout(async()=>{
-
-
-
-        const updatedGame =
-
-            await BingoGame.findOne({
-
-                active:true
-
-            });
-
-
-
-
-
-        if(!updatedGame)
-
-            return;
-
-
-
-
-
-
-        const winners = [];
-
-
-
-
-
-
-        for(const claim of updatedGame.claims){
-
-
-
-            const player =
-
-                updatedGame.players.find(
-
-                    p =>
-
-                    p.userId === claim.userId
-
-                );
-
-
-
-
-
-            if(
-
-                checkBingo(player)
-
-            ){
-
-
-                winners.push(
-
-                    claim.userId
-
-                );
-
-
-            }
-
-
-        }
-
-
-
-
-
-
-
-
-        if(winners.length > 0){
-
-
-
-            for(const id of winners){
-
-
-                try{
-
-
-                    const member =
-                        await channel.guild.members.fetch(
-                            id
-                        );
-
-
-
-
-
-                    await member.roles.add(
-
-                        config.EVENT_WINNER_ROLE_ID
-
-                    );
-
-
-
-                }
-
-                catch(error){
-
-
-                    console.log(error.message);
-
-
-                }
-
-
-            }
-
-
-
-
-
-
-
-
-            await channel.send({
-
-                embeds:[
-
-
-                    new EmbedBuilder()
-
-                    .setTitle(
-
-                        "🎉 Bingo Winners!"
-
-                    )
-
-                    .setDescription(
-
-                        winners
-
-                        .map(
-
-                            id =>
-
-                            `<@${id}>`
-
-                        )
-
-                        .join("\n")
-
-                    )
-
-                    .setColor(
-
-                        "#FFD700"
-
-                    )
-
-
-                ]
-
-            });
-
-
-
-
-
-
-
-
-            await BingoGame.deleteMany({
-
-                active:true
-
-            });
-
-
-
-            return;
-
-
-        }
-
-
-
-
-
-
-
-
-
-        // verkeerde bingo
-
-        await channel.send({
-
-            content:
-
-`
-❌ No valid bingo.
-
-The game continues!
-`
-
-        });
-
-
-
-
-
-
-
-        updatedGame.claims = [];
-
-        updatedGame.checkingClaim = false;
-
-
-
-        await updatedGame.save();
-
-
-
-
-
-
-    }, config.CLAIM_CHECK_TIME);
-
-
-
-}
-
-
-
-
-
-
-
-
-// =====================================
-// CHECK BINGO
-// =====================================
-
-
-function checkBingo(player){
-
-    if(!player)
-        return false;
-
-
-    const lines = [
-
-        // rows
-        [0,1,2,3,4],
-        [5,6,7,8,9],
-        [10,11,12,13,14],
-        [15,16,17,18,19],
-        [20,21,22,23,24],
-
-        // columns
-        [0,5,10,15,20],
-        [1,6,11,16,21],
-        [2,7,12,17,22],
-        [3,8,13,18,23],
-        [4,9,14,19,24],
-
-        // diagonals
-        [0,6,12,18,24],
-        [4,8,12,16,20]
-
-    ];
-
-
-
-    return lines.some(
-
-        line =>
-
-        line.every(
-
-            index => {
-
-                const value =
-                    player.card[index];
-
-
-                // FREE telt altijd mee
-                if(value === "FREE")
-                    return true;
-
-
-                return player.marked.includes(value);
-
-            }
-
-        )
-
-    );
-
-}
-
-
-
-
-
-
-
-
-// =====================================
-// FINISH GAME
-// =====================================
-
-
-async function finishGame(
-
-    client,
-
-    channel,
-
-    game
-
-){
-
-
-
-    const winners = [];
-
-
-
-
-
-    for(const player of game.players){
-
-
-
-        if(
-
-            checkBingo(player)
-
-        ){
-
-
-            winners.push(
-
-                player.userId
+                interaction.user.id
 
             );
 
 
-        }
+
+        await member.roles.add(
+
+            config.EVENT_WINNER_ROLE_ID
+
+        );
 
 
     }
 
+    catch(error) {
 
-
-
-
-
-    if(winners.length === 0){
-
-
-        await channel.send({
-
-            content:
-
-`
-🎱 Bingo finished!
-
-No winners this time.
-`
-
-        });
-
-
+        console.log(error.message);
 
     }
-
-    else{
-
-
-
-        for(const id of winners){
-
-
-
-            try{
-
-
-                const member =
-
-                    await channel.guild.members.fetch(
-
-                        id
-
-                    );
-
-
-
-
-
-                await member.roles.add(
-
-                    config.EVENT_WINNER_ROLE_ID
-
-                );
-
-
-            }
-
-            catch(error){
-
-
-                console.log(error.message);
-
-
-            }
-
-
-        }
-
-
-
-
-
-
-        await channel.send({
-
-            embeds:[
-
-
-                new EmbedBuilder()
-
-                .setTitle(
-
-                    "🎉 Final Bingo Winners!"
-
-                )
-
-                .setDescription(
-
-                    winners
-
-                    .map(
-
-                        id =>
-
-                        `<@${id}>`
-
-                    )
-
-                    .join("\n")
-
-                )
-
-                .setColor(
-
-                    "#FFD700"
-
-                )
-
-
-            ]
-
-
-        });
-
-
-
-    }
-
 
 
 
@@ -2004,4 +1262,147 @@ No winners this time.
 
 
 
+    await interaction.reply({
+
+        content:
+        "🎉 Congratulations! You won bingo.",
+
+        ephemeral:true
+
+    });
+
+
 }
+
+
+
+
+
+
+
+// =================================
+// CHECK BINGO
+// =================================
+
+function checkBingo(player) {
+
+
+    if(!player)
+        return false;
+
+
+
+    const lines = [
+
+
+        [0,1,2,3,4],
+
+        [5,6,7,8,9],
+
+        [10,11,12,13,14],
+
+        [15,16,17,18,19],
+
+        [20,21,22,23,24],
+
+
+        [0,5,10,15,20],
+
+        [1,6,11,16,21],
+
+        [2,7,12,17,22],
+
+        [3,8,13,18,23],
+
+        [4,9,14,19,24],
+
+
+        [0,6,12,18,24],
+
+        [4,8,12,16,20]
+
+
+    ];
+
+
+
+
+    return lines.some(
+
+        line =>
+
+        line.every(
+
+            index => {
+
+
+                const value =
+                    player.card[index];
+
+
+
+                if(value === "FREE")
+                    return true;
+
+
+
+                return player.marked.includes(value);
+
+
+            }
+
+        )
+
+    );
+
+
+}
+
+
+
+
+
+
+
+// =================================
+// FINISH GAME
+// =================================
+
+async function finishGame(
+
+    channel,
+
+    game
+
+) {
+
+
+    await channel.send({
+
+        content:
+
+        "🎱 Bingo finished. No more numbers."
+
+    });
+
+
+
+    await BingoGame.deleteMany({
+
+        active:true
+
+    });
+
+
+}
+        module.exports = {
+
+            ...bingoCommand,
+
+            openBingoCard,
+
+            markNumber,
+
+            claimBingo
+
+        };

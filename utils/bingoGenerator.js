@@ -1,10 +1,14 @@
+// =====================================
+// BINGO NUMBER GENERATOR
+// =====================================
+
+
 function getRandomNumbers(min, max, amount) {
 
     const numbers = [];
 
 
-    while (numbers.length < amount) {
-
+    while(numbers.length < amount) {
 
         const number =
             Math.floor(
@@ -12,7 +16,7 @@ function getRandomNumbers(min, max, amount) {
             ) + min;
 
 
-        if (!numbers.includes(number)) {
+        if(!numbers.includes(number)) {
 
             numbers.push(number);
 
@@ -22,15 +26,18 @@ function getRandomNumbers(min, max, amount) {
 
 
     return numbers.sort(
-
         (a, b) => a - b
-
     );
 
 }
 
 
 
+
+
+// =====================================
+// GENERATE BINGO CARD
+// =====================================
 
 
 function generateBingoCard() {
@@ -50,6 +57,7 @@ function generateBingoCard() {
     );
 
 
+    // N column has only 4 numbers because center is FREE
     const N = getRandomNumbers(
         31,
         45,
@@ -72,17 +80,47 @@ function generateBingoCard() {
 
 
 
+
     return [
 
-        B[0], I[0], N[0], G[0], O[0],
+        // Row 1
+        B[0],
+        I[0],
+        N[0],
+        G[0],
+        O[0],
 
-        B[1], I[1], N[1], G[1], O[1],
 
-        B[2], I[2], N[2], G[2], O[2],
+        // Row 2
+        B[1],
+        I[1],
+        N[1],
+        G[1],
+        O[1],
 
-        B[3], I[3], N[3], G[3], O[3],
 
-        B[4], I[4], N[4], G[4], O[4]
+        // Row 3 (FREE center)
+        B[2],
+        I[2],
+        "FREE",
+        G[2],
+        O[2],
+
+
+        // Row 4
+        B[3],
+        I[3],
+        N[2],
+        G[3],
+        O[3],
+
+
+        // Row 5
+        B[4],
+        I[4],
+        N[3],
+        G[4],
+        O[4]
 
     ];
 
@@ -92,46 +130,16 @@ function generateBingoCard() {
 
 
 
+// =====================================
+// GET CARD BUTTON LAYOUT
+// =====================================
+
+
 function getCardLayout(card) {
 
 
-    return [
+    return card;
 
-        card[0],
-        card[1],
-        card[2],
-        card[3],
-        card[4],
-
-
-        card[5],
-        card[6],
-        card[7],
-        card[8],
-        card[9],
-
-
-        card[10],
-        card[11],
-        "FREE",
-        card[12],
-        card[13],
-
-
-        card[14],
-        card[15],
-        card[16],
-        card[17],
-        card[18],
-
-
-        card[19],
-        card[20],
-        card[21],
-        card[22],
-        card[23]
-
-    ];
 
 }
 

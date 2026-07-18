@@ -116,6 +116,44 @@ const {
 
     const customId = interaction.customId;
 
+        // ===========================================
+        //                BINGO
+        // ===========================================
+
+        if (customId === "open_bingo_card") {
+
+            const {
+                openBingoCard
+            } = require("../../commands/bingo");
+
+            return openBingoCard(interaction);
+
+        }
+
+
+
+        if (customId.startsWith("bingo_")) {
+
+            const {
+                markNumber
+            } = require("../../commands/bingo");
+
+            return markNumber(interaction);
+
+        }
+
+
+
+        if (customId === "bingo_claim") {
+
+            const {
+                claimBingo
+            } = require("../../commands/bingo");
+
+            return claimBingo(interaction);
+
+        }
+
     // -------------------------
     //  ROCK PAPER SCISSORS
     // -------------------------

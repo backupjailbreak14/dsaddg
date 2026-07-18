@@ -13,28 +13,23 @@ const BingoGameSchema = new mongoose.Schema({
     },
 
 
-
     channelId: {
 
         type: String,
 
-        default: null
+        required: true
 
     },
-
 
 
     startedBy: {
 
         type: String,
 
-        default: null
+        required: true
 
     },
 
-
-
-    // Allows players to join only during registration period
 
     registrationOpen: {
 
@@ -45,9 +40,6 @@ const BingoGameSchema = new mongoose.Schema({
     },
 
 
-
-    // Current public bingo number
-
     currentNumber: {
 
         type: Number,
@@ -56,9 +48,6 @@ const BingoGameSchema = new mongoose.Schema({
 
     },
 
-
-
-    // All numbers that have already been drawn
 
     drawnNumbers: [
 
@@ -76,7 +65,6 @@ const BingoGameSchema = new mongoose.Schema({
 
         {
 
-
             userId: {
 
                 type: String,
@@ -86,22 +74,24 @@ const BingoGameSchema = new mongoose.Schema({
             },
 
 
-
-            // Personal bingo card
-
             card: [
 
-                Number
+                {
+
+                    type: mongoose.Schema.Types.Mixed
+
+                }
 
             ],
 
 
-
-            // Numbers the player marked
-
             marked: [
 
-                Number
+                {
+
+                    type: Number
+
+                }
 
             ]
 
@@ -110,31 +100,6 @@ const BingoGameSchema = new mongoose.Schema({
     ],
 
 
-
-
-    // Stops new claims while one is being checked
-
-    checkingClaim: {
-
-        type: Boolean,
-
-        default: false
-
-    },
-
-
-
-    // Pauses number drawing during bingo verification
-
-    paused: {
-
-        type: Boolean,
-
-        default: false
-
-    },
-
-    // Stores all bingo claims during the checking period
 
     claims: [
 
@@ -161,6 +126,26 @@ const BingoGameSchema = new mongoose.Schema({
 
     ],
 
+
+
+    checkingClaim: {
+
+        type: Boolean,
+
+        default: false
+
+    },
+
+
+    paused: {
+
+        type: Boolean,
+
+        default: false
+
+    },
+
+
     createdAt: {
 
         type: Date,
@@ -174,8 +159,7 @@ const BingoGameSchema = new mongoose.Schema({
 
 
 
-module.exports =
-mongoose.model(
+module.exports = mongoose.model(
     "BingoGame",
     BingoGameSchema
 );
