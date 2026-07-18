@@ -118,7 +118,14 @@ function getAwardCount(labels = []) {
 }
 
 
+function getCardCreatedDate(cardId) {
 
+    const timestamp =
+        parseInt(cardId.substring(0, 8), 16) * 1000;
+
+    return new Date(timestamp);
+
+}
 
 
 
@@ -126,27 +133,40 @@ function getAwardCount(labels = []) {
 
 function findRobloxUser(guild, name) {
 
+    const search = name
+        .toLowerCase()
+        .replace(/[^a-z0-9]/g, "");
+
+
     return guild.members.cache.find(member => {
 
 
-        const usernames = [
+        const names = [
 
             member.nickname,
 
-            member.user.username
+            member.user.username,
+
+            member.user.globalName
 
         ]
 
         .filter(Boolean)
-
         .map(x =>
             x.toLowerCase()
+             .replace(/[^a-z0-9]/g, "")
         );
 
 
 
-        return usernames.includes(
-            name.toLowerCase()
+        return names.some(userName =>
+
+            userName === search ||
+
+            userName.includes(search) ||
+
+            search.includes(userName)
+
         );
 
 
@@ -277,7 +297,14 @@ async function syncTrelloAwards(client, guildId) {
                     "MILITARY MEDAL",
                     "SOVIET UNION AWARDS TRELLO",
                     "RULES OF WEAR",
-                    "MANAGEMENT"
+                    "MANAGEMENT",
+
+                    "MILITARY AND CIVIL ORDER",
+                    "CAMPAIGN MEDAL",
+                    "CIVILIAN MEDAL",
+                    "JUBILEE MEDAL",
+                    "MILITARY BADGE",
+                    "BADGE"
 
                 ];
 
@@ -433,6 +460,9 @@ async function syncTrelloAwards(client, guildId) {
                     existing.reason =
                         reason;
 
+                    existing.awardedAt =
+                        getCardCreatedDate(card.id);
+
 
 
                 }
@@ -446,42 +476,31 @@ async function syncTrelloAwards(client, guildId) {
                         name:
                             awardInfo.name,
 
-
                         category:
                             awardInfo.category,
 
-
                         count,
-
 
                         source:
                             "trello",
 
-
-
                         trelloCardId:
                             card.id,
 
-
-
                         reason,
-
-
 
                         awardedBy: {
 
                             id:
                                 "Trello",
 
-
                             username:
                                 "Trello Sync"
 
                         },
 
-
                         awardedAt:
-                            new Date()
+                        getCardCreatedDate(card.id)
 
                     });
 

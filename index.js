@@ -457,71 +457,43 @@ client.on("messageCreate", async (message) => {
 // ----------------------
 const { syncTrelloAwards } = require("./utils/trelloAwardSync");
 
-client.once("clientReady", async () => {
+client.on("clientReady", async () => {
 
   botOnlineSince = Date.now();
 
-  log(
-    `TOKEN IS LOADED & BOT IS READY: ${client.user.tag}`
-  );
+  log(`TOKEN IS LOADED & BOT IS READY: ${client.user.tag}`);
 
 
-  const guildId = "1123600249798266962";
+  // Trello award sync
 
+  try {
 
-  async function runTrelloSync() {
+    await syncTrelloAwards(
+      client,
+      "1123600249798266962"
+    );
 
-    try {
+    setInterval(() => {
 
-      log("🛰️ Starting Trello award sync...");
-
-
-      await syncTrelloAwards(
+      syncTrelloAwards(
         client,
-        guildId
+        "1123600249798266962"
       );
 
-
-      log(
-        "✅ Trello sync completed"
-      );
+    }, 1000 * 60 * 30);
 
 
-    } catch(error) {
-
-
-      logError(
-        "❌ Trello sync failed:",
-        error.message
-      );
-
-
-    }
+    log("🏅 Trello award sync enabled");
 
   }
+  catch(error) {
 
+    logError(
+      "❌ Trello sync failed:",
+      error
+    );
 
-
-  // direct sync bij opstart
-
-  await runTrelloSync();
-
-
-
-  // elke 30 minuten
-
-  setInterval(
-    runTrelloSync,
-    1000 * 60 * 30
-  );
-
-
-
-  log(
-    "🏅 Trello award sync enabled (30 min)"
-  );
-
-});
+  }
 
 
   const statuses = [
