@@ -138,17 +138,13 @@ function findRobloxUser(guild, name) {
         .replace(/[^a-z0-9]/g, "");
 
 
-    return guild.members.cache.find(member => {
-
+    // First try exact match
+    const exact = guild.members.cache.find(member => {
 
         const names = [
-
             member.nickname,
-
             member.user.username,
-
             member.user.globalName
-
         ]
 
         .filter(Boolean)
@@ -158,16 +154,46 @@ function findRobloxUser(guild, name) {
         );
 
 
+        return names.includes(search);
 
-        return names.some(userName =>
+    });
 
-            userName === search ||
 
-            userName.includes(search) ||
+    if (exact) {
+        return exact;
+    }
 
-            search.includes(userName)
 
+
+    // Partial match only if search is at least 4 characters
+    if (search.length < 4) {
+        return null;
+    }
+
+
+    return guild.members.cache.find(member => {
+
+        const names = [
+            member.nickname,
+            member.user.username,
+            member.user.globalName
+        ]
+
+        .filter(Boolean)
+        .map(x =>
+            x.toLowerCase()
+             .replace(/[^a-z0-9]/g, "")
         );
+
+
+        return names.some(userName => {
+
+            return (
+                userName.startsWith(search) ||
+                search.startsWith(userName)
+            );
+
+        });
 
 
     });
