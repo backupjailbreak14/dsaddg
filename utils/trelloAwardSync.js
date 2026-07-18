@@ -138,8 +138,7 @@ function findRobloxUser(guild, name) {
         .replace(/[^a-z0-9]/g, "");
 
 
-    // First try exact match
-    const exact = guild.members.cache.find(member => {
+    const members = guild.members.cache.map(member => {
 
         const names = [
             member.nickname,
@@ -154,49 +153,56 @@ function findRobloxUser(guild, name) {
         );
 
 
-        return names.includes(search);
+        return {
+            member,
+            names
+        };
 
     });
 
 
+
+    // Exact match first
+    const exact = members.find(data =>
+        data.names.includes(search)
+    );
+
+
     if (exact) {
-        return exact;
+        return exact.member;
     }
 
 
 
-    // Partial match only if search is at least 4 characters
-    if (search.length < 4) {
+    // No unsafe short matches
+    if (search.length < 6) {
         return null;
     }
 
 
-    return guild.members.cache.find(member => {
 
-        const names = [
-            member.nickname,
-            member.user.username,
-            member.user.globalName
-        ]
+    // Partial match only when the search is almost the same length
+    const partial = members.find(data => {
 
-        .filter(Boolean)
-        .map(x =>
-            x.toLowerCase()
-             .replace(/[^a-z0-9]/g, "")
-        );
+        return data.names.some(username => {
 
+            if (Math.abs(username.length - search.length) > 4) {
+                return false;
+            }
 
-        return names.some(userName => {
 
             return (
-                userName.startsWith(search) ||
-                search.startsWith(userName)
+                username.includes(search) ||
+                search.includes(username)
             );
 
         });
 
-
     });
+
+
+
+    return partial?.member || null;
 
 }
 
