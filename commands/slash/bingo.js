@@ -880,34 +880,18 @@ async function sendCard(
 
 
     for(
-
         let i = 0;
-
         i < buttons.length;
-
         i += 5
-
     ){
 
+        const row = new ActionRowBuilder();
 
-        rows.push(
-
-            new ActionRowBuilder()
-
-            .addComponents(
-
-                buttons.slice(
-
-                    i,
-
-                    i + 5
-
-                )
-
-            )
-
+        row.addComponents(
+            buttons.slice(i, i + 5)
         );
 
+        rows.push(row);
 
     }
 
@@ -990,7 +974,7 @@ Click again to remove a mark.
             components:rows,
 
 
-            ephemeral:true,
+            flags: 64,
 
 
             fetchReply:true
@@ -1369,37 +1353,18 @@ Click again to remove a mark.
 
 
         for(
-
             let i = 0;
-
             i < buttons.length;
-
             i += 5
-
         ){
 
+            const row = new ActionRowBuilder();
 
-
-            rows.push(
-
-
-                new ActionRowBuilder()
-
-                .addComponents(
-
-                    buttons.slice(
-
-                        i,
-
-                        i + 5
-
-                    )
-
-                )
-
-
+            row.addComponents(
+                buttons.slice(i, i + 5)
             );
 
+            rows.push(row);
 
         }
 

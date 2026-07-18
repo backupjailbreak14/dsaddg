@@ -1,6 +1,5 @@
 function getRandomNumbers(min, max, amount) {
 
-
     const numbers = [];
 
 
@@ -8,24 +7,16 @@ function getRandomNumbers(min, max, amount) {
 
 
         const number =
-
             Math.floor(
-
                 Math.random() * (max - min + 1)
-
             ) + min;
-
-
 
 
         if (!numbers.includes(number)) {
 
-
             numbers.push(number);
 
-
         }
-
 
     }
 
@@ -36,10 +27,7 @@ function getRandomNumbers(min, max, amount) {
 
     );
 
-
 }
-
-
 
 
 
@@ -98,10 +86,7 @@ function generateBingoCard() {
 
     ];
 
-
 }
-
-
 
 
 
@@ -112,13 +97,11 @@ function getCardLayout(card) {
 
     return [
 
-
         card[0],
         card[1],
         card[2],
         card[3],
         card[4],
-
 
 
         card[5],
@@ -128,7 +111,6 @@ function getCardLayout(card) {
         card[9],
 
 
-
         card[10],
         card[11],
         "FREE",
@@ -136,13 +118,11 @@ function getCardLayout(card) {
         card[13],
 
 
-
         card[14],
         card[15],
         card[16],
         card[17],
         card[18],
-
 
 
         card[19],
@@ -153,9 +133,7 @@ function getCardLayout(card) {
 
     ];
 
-
 }
-
 
 
 
