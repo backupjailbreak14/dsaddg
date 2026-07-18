@@ -803,10 +803,29 @@ async function sendCard(
     for(const number of layout){
 
 
-
         if(number === "FREE"){
 
-            continue;
+
+            buttons.push(
+
+                new ButtonBuilder()
+
+                .setCustomId(
+                    "free"
+                )
+
+                .setLabel(
+                    "⭐"
+                )
+
+                .setStyle(
+                    ButtonStyle.Success
+                )
+
+                .setDisabled(true)
+
+            );
+
 
         }
 
@@ -818,21 +837,15 @@ async function sendCard(
                 new ButtonBuilder()
 
                 .setCustomId(
-
                     `bingo_${number}`
-
                 )
 
                 .setLabel(
-
                     String(number)
-
                 )
 
                 .setStyle(
-
                     ButtonStyle.Secondary
-
                 )
 
             );
@@ -883,21 +896,15 @@ async function sendCard(
             new ButtonBuilder()
 
             .setCustomId(
-
                 "bingo_claim"
-
             )
 
             .setLabel(
-
                 "🎱 BINGO"
-
             )
 
             .setStyle(
-
                 ButtonStyle.Danger
-
             )
 
         )
@@ -1349,7 +1356,10 @@ Click again to remove a mark.
 
 
 
-        const claimRow = new ActionRowBuilder()
+        rows.push(
+
+            new ActionRowBuilder()
+
             .addComponents(
 
                 new ButtonBuilder()
@@ -1366,10 +1376,9 @@ Click again to remove a mark.
                     ButtonStyle.Danger
                 )
 
-            );
+            )
 
-
-        rows.push(claimRow);
+        );
 
 
 
