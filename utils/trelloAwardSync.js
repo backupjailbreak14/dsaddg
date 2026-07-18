@@ -336,6 +336,13 @@ async function syncTrelloAwards(client, guildId) {
                         robloxName
                     );
 
+                console.log(
+                    "MATCH:",
+                    robloxName,
+                    "->",
+                    member ? `${member.user.username} (${member.id})` : "NOT FOUND"
+                );
+
 
 
 
