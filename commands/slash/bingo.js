@@ -887,29 +887,7 @@ async function sendCard(
 
 
 
-    rows.push(
-
-        new ActionRowBuilder()
-
-        .addComponents(
-
-            new ButtonBuilder()
-
-            .setCustomId(
-                "bingo_claim"
-            )
-
-            .setLabel(
-                "🎱 BINGO"
-            )
-
-            .setStyle(
-                ButtonStyle.Danger
-            )
-
-        )
-
-    );
+    
 
 
 
@@ -962,6 +940,83 @@ Click again to remove a mark.
 
 
         });
+
+
+    // Send separate bingo claim button
+    const claimMessage = await interaction.followUp({
+
+        content:
+        "🎱 Press the button below when you have Bingo.",
+
+        components:[
+
+            new ActionRowBuilder()
+
+            .addComponents(
+
+                new ButtonBuilder()
+
+                .setCustomId(
+                    "bingo_claim"
+                )
+
+                .setLabel(
+                    "🎱 BINGO"
+                )
+
+                .setStyle(
+                    ButtonStyle.Danger
+                )
+
+            )
+
+        ],
+
+        flags:64,
+
+        fetchReply:true
+
+    });
+    // Collect bingo claim button
+    const claimCollector =
+        claimMessage.createMessageComponentCollector({
+
+            time:3600000
+
+        });
+
+
+    claimCollector.on(
+
+        "collect",
+
+        async i => {
+
+
+            if(i.user.id !== interaction.user.id){
+
+                return i.reply({
+
+                    content:
+                    "❌ This is not your bingo card.",
+
+                    ephemeral:true
+
+                });
+
+            }
+
+
+            if(i.customId === "bingo_claim"){
+
+                await claimBingo(i);
+
+            }
+
+
+        }
+
+    );
         const collector =
 
             message.createMessageComponentCollector({
@@ -1053,22 +1108,7 @@ Click again to remove a mark.
 
 
 
-                // BINGO knop
-
-                if(
-
-                    i.customId === "bingo_claim"
-
-                ){
-
-
-                    await claimBingo(i);
-
-
-                    return;
-
-
-                }
+                
 
 
 
@@ -1348,39 +1388,6 @@ Click again to remove a mark.
             rows.push(row);
 
         }
-
-
-
-
-
-
-
-
-        rows.push(
-
-            new ActionRowBuilder()
-
-            .addComponents(
-
-                new ButtonBuilder()
-
-                .setCustomId(
-                    "bingo_claim"
-                )
-
-                .setLabel(
-                    "🎱 BINGO"
-                )
-
-                .setStyle(
-                    ButtonStyle.Danger
-                )
-
-            )
-
-        );
-
-
 
 
 
