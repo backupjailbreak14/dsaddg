@@ -806,33 +806,7 @@ async function sendCard(
 
         if(number === "FREE"){
 
-
-            buttons.push(
-
-                new ButtonBuilder()
-
-                .setCustomId(
-
-                    "free"
-
-                )
-
-                .setLabel(
-
-                    "⭐"
-
-                )
-
-                .setStyle(
-
-                    ButtonStyle.Success
-
-                )
-
-                .setDisabled(true)
-
-            );
-
+            continue;
 
         }
 
@@ -1375,39 +1349,27 @@ Click again to remove a mark.
 
 
 
-        rows.push(
-
-
-            new ActionRowBuilder()
-
+        const claimRow = new ActionRowBuilder()
             .addComponents(
-
 
                 new ButtonBuilder()
 
                 .setCustomId(
-
                     "bingo_claim"
-
                 )
 
                 .setLabel(
-
                     "🎱 BINGO"
-
                 )
 
                 .setStyle(
-
                     ButtonStyle.Danger
-
                 )
 
+            );
 
-            )
 
-
-        );
+        rows.push(claimRow);
 
 
 
