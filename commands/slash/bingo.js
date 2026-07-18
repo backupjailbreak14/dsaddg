@@ -211,15 +211,21 @@ ${interaction.user}
 
             );
 
-                        setTimeout(async()=>{
+                            console.log("Bingo registration timer started");
+
+                            setTimeout(async()=>{
+
+                                console.log("Bingo registration ended");
+
+                                const game =
+                                    await BingoGame.findOne({
+                                        active:true
+                                    });
+
+                                console.log("Game found:", game ? "YES" : "NO");
 
 
-                            const game =
-                                await BingoGame.findOne({
-
-                                    active:true
-
-                                });
+                            
 
 
 
@@ -553,6 +559,7 @@ async function startDrawing(
     channel
 
 ){
+    console.log("Starting bingo drawing system");
 
 
     let bingoMessage = null;
@@ -569,6 +576,7 @@ async function startDrawing(
                 active:true
 
             });
+        console.log("Drawing new bingo number...");
 
 
 
