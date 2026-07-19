@@ -381,12 +381,9 @@ Drawing the first number...
 
 
 
-                const bingoMessage =
-                    await interaction.fetchReply();
+                const bingoMessage = await interaction.fetchReply();
 
-
-                interaction.client.bingoMessageId =
-                    bingoMessage.id;
+                interaction.client.bingoMessage = bingoMessage;
 
 
                 startDrawing(
@@ -731,9 +728,7 @@ Drawing the first number...
 
 
         const bingoMessage =
-            await interaction.channel.messages.fetch(
-                interaction.client.bingoMessageId
-            );
+            interaction.client.bingoMessage;
 
 
         let interval = null;
