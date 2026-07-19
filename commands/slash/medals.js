@@ -97,18 +97,20 @@ module.exports = {
                         ? medal.reason.length > 500
                             ? medal.reason.substring(0, 497) + "..."
                             : medal.reason
-                        : "No reason provided.";
+                        : null;
+
 
                 section +=
-`${emoji} **${medal.name}${count}**
+                `${emoji} **${medal.name}${count}**
 
-**Awarded at**
-${awardedAt}
+                **Awarded at**
+                ${awardedAt}
 
-**Reason**
-${reason}
+                ${reason ? `**Reason**
+                ${reason}
 
-`;
+                ` : ""}
+                `;
 
             }
 
