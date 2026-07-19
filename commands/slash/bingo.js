@@ -1166,7 +1166,7 @@ async function claimBingo(interaction) {
         return interaction.reply({
 
             content:
-            "❌ You do not have bingo.",
+            "❌ You do not have bingo. Nice try",
 
             ephemeral:true
 
