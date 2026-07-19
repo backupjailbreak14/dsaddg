@@ -1241,7 +1241,10 @@ async function claimBingo(interaction) {
     // CHECK CARD
 
     const hasBingo =
-        checkBingo(player);
+        checkBingo(
+            player,
+            game.drawnNumbers
+        );
 
 
 
@@ -1379,7 +1382,38 @@ async function claimBingo(interaction) {
 
     }
 
+    // Update public bingo message to ended state
+    if (interaction.client.bingoMessage) {
 
+        await interaction.client.bingoMessage.edit({
+
+            embeds: [
+
+                new EmbedBuilder()
+
+                .setTitle(
+                    "🎱 Bingo Ended!"
+                )
+
+                .setDescription(
+    `
+    🏆 Winner:
+
+    ${interaction.user}
+
+    🎉 Congratulations!
+
+    The bingo game has ended.
+    `
+                )
+
+                .setColor("#00FF00")
+
+            ]
+
+        });
+
+    }
 
 
 
@@ -1404,7 +1438,15 @@ async function claimBingo(interaction) {
     });
 
 
+    if (interaction.client.bingoInterval) {
 
+        clearInterval(
+            interaction.client.bingoInterval
+        );
+
+        interaction.client.bingoInterval = null;
+
+    }
 
 
     await BingoGame.deleteMany({
@@ -1439,19 +1481,15 @@ async function claimBingo(interaction) {
 // CHECK BINGO
 // =================================
 
-function checkBingo(player) {
+function checkBingo(player, drawnNumbers) {
 
 
     if(!player)
-
         return false;
 
 
 
-
-
     const lines = [
-
 
         [0,1,2,3,4],
 
@@ -1479,46 +1517,34 @@ function checkBingo(player) {
 
         [4,8,12,16,20]
 
-
     ];
 
 
 
+    return lines.some(line => {
 
 
-    return lines.some(
-
-        line =>
-
-        line.every(
-
-            index => {
+        return line.every(index => {
 
 
-                const value =
+            const value =
+                player.card[index];
 
-                    player.card[index];
 
+            if(value === "FREE")
+                return true;
 
 
 
-
-                if(value === "FREE")
-
-                    return true;
-
+            return drawnNumbers.includes(value)
+            &&
+            player.marked.includes(value);
 
 
+        });
 
 
-                return player.marked.includes(value);
-
-
-            }
-
-        )
-
-    );
+    });
 
 
 }
