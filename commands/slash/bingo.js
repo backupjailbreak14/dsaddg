@@ -595,11 +595,15 @@ Drawing the first number...
             });
 
 
+                    }
+
                 }
 
-            }
-
         };
+
+
+
+
 
 
 
@@ -734,6 +738,9 @@ Drawing the first number...
                 drawNumber,
                 config.DRAW_INTERVAL
             );
+
+            
+            }
 
 
 // =================================
