@@ -1215,9 +1215,21 @@ async function claimBingo(interaction) {
     if(!hasBingo) {
 
 
-        game.checkingClaim = false;
+        const updatedGame =
+            await BingoGame.findOne({
 
-        await game.save();
+                active:true
+
+            });
+
+
+        if(updatedGame) {
+
+            updatedGame.checkingClaim = false;
+
+            await updatedGame.save();
+
+        }
 
 
 
