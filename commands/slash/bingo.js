@@ -152,17 +152,15 @@ const bingoCommand = {
                     players:[
 
                         {
-
                             userId:
                             interaction.user.id,
-
 
                             card:
                             organizerCard,
 
-
-                            marked:[]
-
+                            marked:[
+                                "FREE"
+                            ]
                         }
 
                     ],
@@ -233,13 +231,11 @@ ${interaction.user}
                     )
 
                     .setDescription(
-`
-This card belongs to you.
+            `
+            This card belongs to you.
 
-Click numbers to mark them.
-
-Press **🎱 BINGO** when you have a winning line.
-`
+            Click numbers to mark them.
+            `
                     )
 
                     .setColor("#3498db")
@@ -252,9 +248,61 @@ Press **🎱 BINGO** when you have a winning line.
 
                     organizerCard,
 
-                    []
+                    ["FREE"]
 
                 ),
+
+                ephemeral:true
+
+            });
+
+
+
+            await interaction.followUp({
+
+                embeds:[
+
+                    new EmbedBuilder()
+
+                    .setTitle(
+                        "🎱 Bingo Claim"
+                    )
+
+                    .setDescription(
+            `
+            When you have a winning line:
+
+            Press the button below to claim bingo.
+            `
+                    )
+
+                    .setColor("#FFD700")
+
+                ],
+
+                components:[
+
+                    new ActionRowBuilder()
+
+                    .addComponents(
+
+                        new ButtonBuilder()
+
+                        .setCustomId(
+                            "bingo_claim"
+                        )
+
+                        .setLabel(
+                            "🎱 BINGO"
+                        )
+
+                        .setStyle(
+                            ButtonStyle.Danger
+                        )
+
+                    )
+
+                ],
 
                 ephemeral:true
 
@@ -454,11 +502,11 @@ Drawing the first number...
                 userId:
                 interaction.user.id,
 
-
                 card,
 
-
-                marked:[]
+                marked:[
+                    "FREE"
+                ]
 
             });
 
@@ -472,7 +520,7 @@ Drawing the first number...
 
 
 
-            return interaction.reply({
+            await interaction.reply({
 
                 embeds:[
 
@@ -483,19 +531,16 @@ Drawing the first number...
                     )
 
                     .setDescription(
-        `
-        You joined the bingo game!
+            `
+            You joined the bingo game!
 
-        Click numbers to mark them.
-
-        Press **🎱 BINGO** when you have a winning line.
-        `
+            Click numbers to mark them.
+            `
                     )
 
                     .setColor("#3498db")
 
                 ],
-
 
                 components:
 
@@ -503,10 +548,59 @@ Drawing the first number...
 
                     card,
 
-                    []
+                    ["FREE"]
 
                 ),
 
+                ephemeral:true
+
+            });
+
+
+
+            await interaction.followUp({
+
+                embeds:[
+
+                    new EmbedBuilder()
+
+                    .setTitle(
+                        "🎱 Bingo Claim"
+                    )
+
+                    .setDescription(
+            `
+            Press the button when you have bingo.
+            `
+                    )
+
+                    .setColor("#FFD700")
+
+                ],
+
+                components:[
+
+                    new ActionRowBuilder()
+
+                    .addComponents(
+
+                        new ButtonBuilder()
+
+                        .setCustomId(
+                            "bingo_claim"
+                        )
+
+                        .setLabel(
+                            "🎱 BINGO"
+                        )
+
+                        .setStyle(
+                            ButtonStyle.Danger
+                        )
+
+                    )
+
+                ],
 
                 ephemeral:true
 
@@ -760,7 +854,7 @@ function createCardButtons(
 
 
     const layout =
-        getCardLayout(card);
+        getCardLayout(card).slice(0,25);
 
 
 
@@ -836,66 +930,38 @@ function createCardButtons(
 
 
 
-    for(
+        for(
 
-        let i = 0;
+            let i = 0;
 
-        i < buttons.length;
+            i < buttons.length;
 
-        i += 5
+            i += 5
 
-    ) {
+        ) {
 
-
-        const row =
-            new ActionRowBuilder();
-
-
-        row.addComponents(
-
-            buttons.slice(
-
-                i,
-
-                i + 5
-
-            )
-
-        );
+            const row =
+                new ActionRowBuilder();
 
 
-        rows.push(row);
+            row.addComponents(
+
+                buttons.slice(
+
+                    i,
+
+                    i + 5
+
+                )
+
+            );
 
 
-    }
+            rows.push(row);
+
+        }
 
 
-
-
-
-    rows.push(
-
-        new ActionRowBuilder()
-
-        .addComponents(
-
-            new ButtonBuilder()
-
-            .setCustomId(
-                "bingo_claim"
-            )
-
-            .setLabel(
-                "🎱 BINGO"
-            )
-
-            .setStyle(
-                ButtonStyle.Danger
-            )
-
-        )
-
-    );
 
 
 
