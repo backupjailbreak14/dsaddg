@@ -731,7 +731,7 @@ Drawing the first number...
             interaction.client.bingoMessage;
 
 
-        let interval = null;
+        let interval = interaction.client.bingoInterval || null;
 
 
 
@@ -990,13 +990,18 @@ function createCardButtons(
 async function markNumber(interaction) {
 
 
-    const game =
+    if(game.checkingClaim){
 
-        await BingoGame.findOne({
+        return interaction.reply({
 
-            active:true
+            content:
+            "🧐 Bingo is being checked. Wait a moment.",
+
+            ephemeral:true
 
         });
+
+    }
 
 
 
@@ -1247,12 +1252,36 @@ async function claimBingo(interaction) {
 
             await updatedGame.save();
 
+            await checkMessage.edit({
 
-            startDrawing(
-                interaction.client,
-                interaction,
-                updatedGame._id
-            );
+                embeds:[
+
+                    new EmbedBuilder()
+
+                    .setTitle("❌ No Bingo")
+
+                    .setDescription(
+                        `${interaction.user} does not have bingo.\n\n` +
+                        `🎱 Continuing game...`
+                    )
+
+                    .setColor("#FF0000")
+
+                ]
+
+            });
+
+
+            // wacht 1 seconde zodat alles netjes terugkomt
+            setTimeout(() => {
+
+                startDrawing(
+                    interaction.client,
+                    interaction,
+                    updatedGame._id
+                );
+
+            },1000);
 
         }
 
