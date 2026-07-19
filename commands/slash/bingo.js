@@ -80,7 +80,7 @@ const bingoCommand = {
 
 
 
-            
+
 
 
 
@@ -385,7 +385,7 @@ Drawing the first number...
 
 
 
-                
+
 
 
                 startDrawing(
@@ -876,7 +876,7 @@ Drawing the first number...
 
             interaction.client.bingoInterval = interval;
 
-            
+
             }
 
 
@@ -1356,7 +1356,7 @@ async function claimBingo(interaction) {
 
 
 
-    
+
 
 
 
