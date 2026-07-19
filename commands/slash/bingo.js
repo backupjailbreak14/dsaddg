@@ -212,6 +212,10 @@ ${interaction.user}
 
             });
 
+            const bingoMessage = await interaction.fetchReply();
+
+            interaction.client.bingoMessage = bingoMessage;
+
 
 
 
@@ -381,9 +385,7 @@ Drawing the first number...
 
 
 
-                const bingoMessage = await interaction.fetchReply();
-
-                interaction.client.bingoMessage = bingoMessage;
+                
 
 
                 startDrawing(
@@ -516,6 +518,43 @@ Drawing the first number...
 
 
             await game.save();
+
+            const registrationEmbed =
+                new EmbedBuilder()
+
+                .setTitle(
+                    "🎱 Bingo Registration Open!"
+                )
+
+                .setDescription(
+            `
+            A new bingo event has started!
+
+            Registration closes in **30 seconds**.
+
+            Use:
+
+            \`/bingo join\`
+
+            to join the game.
+
+            Players:
+
+            ${game.players
+                .map(player => `<@${player.userId}>`)
+                .join("\n")}
+            `
+                )
+
+                .setColor("#3498db");
+
+            await interaction.client.bingoMessage.edit({
+
+                embeds: [
+                    registrationEmbed
+                ]
+
+            });
 
 
 
@@ -1080,6 +1119,22 @@ function createCardButtons(
 
         );
 
+        if (
+            !player.marked.includes(number) &&
+            player.marked.length >= game.drawnNumbers.length
+        ) {
+
+            return interaction.reply({
+
+                content:
+                "❌ You cannot mark more numbers than have been drawn.",
+
+                ephemeral: true
+
+            });
+
+        }
+
 
 
 
@@ -1301,24 +1356,7 @@ async function claimBingo(interaction) {
 
 
 
-        await checkMessage.edit({
-
-            embeds:[
-
-                new EmbedBuilder()
-
-                .setTitle("❌ No Bingo")
-
-                .setDescription(
-                    `${interaction.user} does not have bingo.\n\n` +
-                    `🎱 Continuing game...`
-                )
-
-                .setColor("#FF0000")
-
-            ]
-
-        });
+    
 
 
 
