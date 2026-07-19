@@ -413,8 +413,7 @@ async function syncTrelloAwards(client, guildId) {
 
 
                 const reason =
-                    card.desc ||
-                    "No reason provided";
+                    card.desc?.trim() || "";
 
 
 
