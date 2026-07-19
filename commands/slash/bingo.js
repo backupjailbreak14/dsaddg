@@ -158,9 +158,7 @@ const bingoCommand = {
                             card:
                             organizerCard,
 
-                            marked:[
-                                "FREE"
-                            ]
+                            marked:[]
                         }
 
                     ],
@@ -504,9 +502,7 @@ Drawing the first number...
 
                 card,
 
-                marked:[
-                    "FREE"
-                ]
+                marked:[]
 
             });
 
