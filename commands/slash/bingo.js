@@ -744,8 +744,9 @@ Drawing the first number...
 
                 }
 
-                if(game.checkingClaim)
+                if(game.checkingClaim) {
                     return;
+                }
 
 
                 if(game.drawnNumbers.length >= config.MAX_NUMBER) {
@@ -828,6 +829,8 @@ Drawing the first number...
                 drawNumber,
                 config.DRAW_INTERVAL
             );
+
+            interaction.client.bingoInterval = interval;
 
             
             }
@@ -1163,6 +1166,10 @@ async function claimBingo(interaction) {
 
     await game.save();
 
+    if (interaction.client.bingoInterval) {
+        clearInterval(interaction.client.bingoInterval);
+    }
+
 
 
     const channel =
@@ -1223,11 +1230,18 @@ async function claimBingo(interaction) {
             });
 
 
-        if(updatedGame) {
+        if (updatedGame) {
 
             updatedGame.checkingClaim = false;
 
             await updatedGame.save();
+
+
+            startDrawing(
+                interaction.client,
+                interaction,
+                updatedGame._id
+            );
 
         }
 
