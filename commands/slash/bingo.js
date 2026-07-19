@@ -987,23 +987,15 @@ function createCardButtons(
 // MARK BINGO NUMBER
 // =================================
 
-async function markNumber(interaction) {
+    async function markNumber(interaction) {
 
 
-    if(game.checkingClaim){
+    const game =
+        await BingoGame.findOne({
 
-        return interaction.reply({
-
-            content:
-            "🧐 Bingo is being checked. Wait a moment.",
-
-            ephemeral:true
+            active:true
 
         });
-
-    }
-
-
 
 
 
@@ -1023,6 +1015,21 @@ async function markNumber(interaction) {
     }
 
 
+
+    if(game.checkingClaim){
+
+
+        return interaction.reply({
+
+            content:
+            "🧐 Bingo is being checked. Wait a moment.",
+
+            ephemeral:true
+
+        });
+
+
+    }
 
 
 
