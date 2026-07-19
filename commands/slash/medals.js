@@ -3,8 +3,7 @@ const {
     EmbedBuilder,
     ActionRowBuilder,
     ButtonBuilder,
-    ButtonStyle,
-    PermissionFlagsBits
+    ButtonStyle
 } = require("discord.js");
 
 const Medal = require("../../models/Medal");
@@ -31,16 +30,6 @@ module.exports = {
 
         if (input) {
 
-            if (
-                !interaction.member.permissions.has(
-                    PermissionFlagsBits.ManageRoles
-                ) &&
-                interaction.user.id !== process.env.OWNER_ID
-            ) {
-                return interaction.editReply(
-                    "❌ You cannot view other users' medals."
-                );
-            }
 
             targetId = input.replace(/\D/g, "");
 

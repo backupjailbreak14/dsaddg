@@ -75,13 +75,7 @@ const BingoGameSchema = new mongoose.Schema({
 
 
             card: [
-
-                {
-
-                    type: mongoose.Schema.Types.Mixed
-
-                }
-
+                mongoose.Schema.Types.Mixed
             ],
 
 

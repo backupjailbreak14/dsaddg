@@ -116,41 +116,34 @@ const {
 
     const customId = interaction.customId;
 
+
+
+
         // ===========================================
         //                BINGO
         // ===========================================
 
-        if (customId === "open_bingo_card") {
 
-            const {
-                openBingoCard
-            } = require("../../commands/bingo");
-
-            return openBingoCard(interaction);
-
-        }
-
-
-
-        if (customId.startsWith("bingo_")) {
-
-            const {
-                markNumber
-            } = require("../../commands/bingo");
-
-            return markNumber(interaction);
-
-        }
-
-
-
+        // Claim button must be checked first
         if (customId === "bingo_claim") {
 
             const {
                 claimBingo
-            } = require("../../commands/bingo");
+            } = require("../../commands/slash/bingo");
 
             return claimBingo(interaction);
+
+        }
+
+
+        // Number buttons
+        if (customId.startsWith("bingo_")) {
+
+            const {
+                markNumber
+            } = require("../../commands/slash/bingo");
+
+            return markNumber(interaction);
 
         }
 

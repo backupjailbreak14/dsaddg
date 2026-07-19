@@ -162,7 +162,7 @@ module.exports = {
 `
 ${ranks[i]} **${display}**
 
-🏅 Awards: **${user.count}**
+  Awards: **${user.count}**
 
 `;
 
