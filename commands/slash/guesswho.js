@@ -34,7 +34,6 @@ const guessWhoCommand = {
     async run(client, interaction) {
 
 
-
         const usedQuestions = [];
 
         const scores = {};
@@ -44,23 +43,11 @@ const guessWhoCommand = {
 
 
 
-        const firstQuestion =
-
-            getRandomQuestion(
-                usedQuestions
-            );
-
-
-
-
-
         await interaction.reply({
 
             embeds:[
 
-                createQuestionEmbed(
-                    firstQuestion
-                )
+                createWaitingEmbed()
 
             ]
 
@@ -75,12 +62,6 @@ const guessWhoCommand = {
 
 
             const question =
-
-                usedQuestions.length === 1
-
-                ? firstQuestion
-
-                :
 
                 getRandomQuestion(
                     usedQuestions
@@ -120,7 +101,7 @@ const guessWhoCommand = {
 
 
 
-            // Nobody answered correctly
+            // No correct answer after 30 seconds
 
             if(!answer) {
 
@@ -166,13 +147,10 @@ const guessWhoCommand = {
 
                 scores[userId] = {
 
-
                     username:
                     answer.author.username,
 
-
                     points:0
-
 
                 };
 
@@ -224,6 +202,8 @@ const guessWhoCommand = {
 
 
 
+
+
 // =================================
 // GET RANDOM QUESTION
 // =================================
@@ -244,8 +224,13 @@ function getRandomQuestion(
             questions[
 
                 Math.floor(
-                    Math.random() *
+
+                    Math.random()
+
+                    *
+
                     questions.length
+
                 )
 
             ];
@@ -272,6 +257,34 @@ function getRandomQuestion(
 
 
 }
+
+
+
+
+
+
+
+
+
+// =================================
+// NORMALIZE ANSWERS
+// =================================
+
+function normalize(text) {
+
+
+    return text
+
+    .toLowerCase()
+
+    .replace(/\s+/g, " ")
+
+    .trim();
+
+
+}
+
+
 
 
 
@@ -309,6 +322,38 @@ ${question.emojis}
 
 
 }
+
+
+
+
+
+
+
+
+
+// =================================
+// WAITING EMBED
+// =================================
+
+function createWaitingEmbed() {
+
+
+    return new EmbedBuilder()
+
+    .setTitle(
+        "🤔 Guess Who?"
+    )
+
+    .setDescription(
+        "Starting game..."
+    )
+
+    .setColor("#9b59b6");
+
+
+}
+
+
 
 
 
@@ -369,19 +414,20 @@ function collectAnswer(
 
 
                 if(solved)
+
                     return;
 
 
 
 
 
-                const answer =
+                const userAnswer =
 
-                    message.content
+                    normalize(
 
-                    .toLowerCase()
+                        message.content
 
-                    .trim();
+                    );
 
 
 
@@ -389,11 +435,11 @@ function collectAnswer(
 
                 const correctAnswer =
 
-                    question.answer
+                    normalize(
 
-                    .toLowerCase()
+                        question.answer
 
-                    .trim();
+                    );
 
 
 
@@ -401,7 +447,7 @@ function collectAnswer(
 
                 if(
 
-                    answer === correctAnswer
+                    userAnswer === correctAnswer
 
                 ) {
 
@@ -457,12 +503,6 @@ function collectAnswer(
 
 }
 
-
-
-
-
-
-
 // =================================
 // CREATE LEADERBOARD EMBED
 // =================================
@@ -475,6 +515,14 @@ function createLeaderboardEmbed(
     const leaderboard =
 
         Object.values(scores)
+
+        .filter(
+
+            player =>
+
+            player.points > 0
+
+        )
 
         .sort(
 
@@ -508,9 +556,10 @@ ${index + 1}. **${player.username}** - ${player.points} point(s)
 
     .setDescription(
 `
-${leaderboard}
+${leaderboard || "Nobody scored yet."}
 
-⏳ Next question in 5 seconds...
+
+⏳ Next question in **5 seconds...**
 `
     )
 
@@ -518,6 +567,8 @@ ${leaderboard}
 
 
 }
+
+
 
 
 
@@ -541,6 +592,14 @@ function createGameOverEmbed(
     const leaderboard =
 
         Object.values(scores)
+
+        .filter(
+
+            player =>
+
+            player.points > 0
+
+        )
 
         .sort(
 
@@ -574,7 +633,9 @@ ${index + 1}. **${player.username}** - ${player.points} point(s)
 
     .setDescription(
 `
-Final Score:
+Nobody guessed the correct answer.
+
+🏆 Final Score:
 
 ${leaderboard || "Nobody scored."}
 
@@ -596,6 +657,8 @@ The answer was:
 
 
 
+
+
 // =================================
 // WAIT FUNCTION
 // =================================
@@ -607,12 +670,20 @@ function wait(ms) {
 
         resolve =>
 
-        setTimeout(resolve, ms)
+        setTimeout(
+
+            resolve,
+
+            ms
+
+        )
 
     );
 
 
 }
+
+
 
 
 
