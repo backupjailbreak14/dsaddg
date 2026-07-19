@@ -1129,46 +1129,101 @@ async function claimBingo(interaction) {
 
 
     const game =
-
         await BingoGame.findOne({
-
             active:true
+        });
+
+
+    if(!game)
+        return;
+
+
+    const player =
+        game.players.find(
+            p =>
+            p.userId === interaction.user.id
+        );
+
+
+    if(!player) {
+
+        return interaction.reply({
+            content:
+            "❌ You are not playing bingo.",
+            ephemeral:true
+        });
+
+    }
+
+
+
+    // PAUSE GAME
+
+    game.checkingClaim = true;
+
+    await game.save();
+
+
+
+    const channel =
+        interaction.client.channels.cache.get(
+            game.channelId
+        );
+
+
+
+    const checkMessage =
+        await channel.send({
+
+            content:
+            `🎱 ${interaction.user} pressed bingo!\n\n` +
+            `🧐 Slatoer is checking the card...`
 
         });
 
 
 
+    // WAIT 10 SECONDS
 
-
-    if(!game)
-
-        return;
-
-
-
-
-
-    const player =
-
-        game.players.find(
-
-            p =>
-
-            p.userId === interaction.user.id
-
-        );
+    await new Promise(
+        resolve =>
+        setTimeout(resolve,10000)
+    );
 
 
 
 
+    // CHECK CARD
 
-    if(!checkBingo(player)) {
+    const hasBingo =
+        checkBingo(player);
+
+
+
+
+    if(!hasBingo) {
+
+
+        game.checkingClaim = false;
+
+        await game.save();
+
+
+
+        await checkMessage.edit({
+
+            content:
+            `❌ ${interaction.user} does not have bingo.\n\n` +
+            `🎱 Continuing game...`
+
+        });
+
 
 
         return interaction.reply({
 
             content:
-            "❌ You do not have bingo.",
+            "❌ Your bingo claim was invalid.",
 
             ephemeral:true
 
@@ -1180,23 +1235,41 @@ async function claimBingo(interaction) {
 
 
 
-
-    game.checkingClaim = true;
-
-
-    await game.save();
+    // WINNER
 
 
+    await checkMessage.edit({
+
+        content:
+        `🎉 ${interaction.user} has valid bingo!`
+
+    });
 
 
 
-    const channel =
 
-        interaction.client.channels.cache.get(
+    try {
 
-            game.channelId
 
+        const member =
+            await channel.guild.members.fetch(
+                interaction.user.id
+            );
+
+
+        await member.roles.add(
+            config.EVENT_WINNER_ROLE_ID
         );
+
+
+    } catch(error) {
+
+        console.log(
+            "Role error:",
+            error.message
+        );
+
+    }
 
 
 
@@ -1209,11 +1282,11 @@ async function claimBingo(interaction) {
             new EmbedBuilder()
 
             .setTitle(
-                "🎉 Bingo Winner!"
+                "🏆 Bingo Winner!"
             )
 
             .setDescription(
-                `${interaction.user} won bingo!`
+                `${interaction.user} won the bingo event!`
             )
 
             .setColor("#FFD700")
@@ -1221,40 +1294,6 @@ async function claimBingo(interaction) {
         ]
 
     });
-
-
-
-
-
-    try {
-
-
-        const member =
-
-            await channel.guild.members.fetch(
-
-                interaction.user.id
-
-            );
-
-
-
-        await member.roles.add(
-
-            config.EVENT_WINNER_ROLE_ID
-
-        );
-
-
-    }
-
-    catch(error) {
-
-
-        console.log(error.message);
-
-
-    }
 
 
 
@@ -1273,7 +1312,7 @@ async function claimBingo(interaction) {
     return interaction.reply({
 
         content:
-        "🎉 Congratulations! You won bingo.",
+        "🎉 Congratulations! You won bingo!",
 
         ephemeral:true
 
