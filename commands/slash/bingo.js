@@ -381,6 +381,14 @@ Drawing the first number...
 
 
 
+                const bingoMessage =
+                    await interaction.fetchReply();
+
+
+                interaction.client.bingoMessageId =
+                    bingoMessage.id;
+
+
                 startDrawing(
 
                     client,
@@ -723,7 +731,9 @@ Drawing the first number...
 
 
         const bingoMessage =
-        await interaction.fetchReply();
+            await interaction.channel.messages.fetch(
+                interaction.client.bingoMessageId
+            );
 
 
         let interval = null;
@@ -1167,7 +1177,13 @@ async function claimBingo(interaction) {
     await game.save();
 
     if (interaction.client.bingoInterval) {
-        clearInterval(interaction.client.bingoInterval);
+
+        clearInterval(
+            interaction.client.bingoInterval
+        );
+
+        interaction.client.bingoInterval = null;
+
     }
 
 
