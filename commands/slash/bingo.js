@@ -1147,6 +1147,10 @@ function createCardButtons(
 
 async function claimBingo(interaction) {
 
+    await interaction.deferReply({
+        ephemeral:true
+    });
+
 
     const game =
         await BingoGame.findOne({
@@ -1315,12 +1319,10 @@ async function claimBingo(interaction) {
 
 
 
-        return interaction.reply({
+        return interaction.editReply({
 
             content:
-            "❌ Your bingo claim was invalid.",
-
-            ephemeral:true
+            "❌ Your bingo claim was invalid."
 
         });
 
@@ -1415,12 +1417,10 @@ async function claimBingo(interaction) {
 
 
 
-    return interaction.reply({
+    return interaction.editReply({
 
         content:
-        "🎉 Congratulations! You won bingo!",
-
-        ephemeral:true
+        "🎉 Congratulations! You won bingo!"
 
     });
 
