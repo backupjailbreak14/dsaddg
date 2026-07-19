@@ -1175,9 +1175,20 @@ async function claimBingo(interaction) {
     const checkMessage =
         await channel.send({
 
-            content:
-            `🎱 ${interaction.user} pressed bingo!\n\n` +
-            `🧐 Slatoer is checking the card...`
+            embeds:[
+
+                new EmbedBuilder()
+
+                .setTitle("🎱 Bingo Claim")
+
+                .setDescription(
+                    `${interaction.user} pressed bingo!\n\n` +
+                    `🧐 Slatoer is checking the card...`
+                )
+
+                .setColor("#FFD700")
+
+            ]
 
         });
 
@@ -1212,9 +1223,20 @@ async function claimBingo(interaction) {
 
         await checkMessage.edit({
 
-            content:
-            `❌ ${interaction.user} does not have bingo.\n\n` +
-            `🎱 Continuing game...`
+            embeds:[
+
+                new EmbedBuilder()
+
+                .setTitle("❌ No Bingo")
+
+                .setDescription(
+                    `${interaction.user} does not have bingo.\n\n` +
+                    `🎱 Continuing game...`
+                )
+
+                .setColor("#FF0000")
+
+            ]
 
         });
 
@@ -1240,8 +1262,19 @@ async function claimBingo(interaction) {
 
     await checkMessage.edit({
 
-        content:
-        `🎉 ${interaction.user} has valid bingo!`
+        embeds:[
+
+            new EmbedBuilder()
+
+            .setTitle("🎉 Bingo Valid!")
+
+            .setDescription(
+                `${interaction.user} has a valid bingo card!`
+            )
+
+            .setColor("#00FF00")
+
+        ]
 
     });
 
