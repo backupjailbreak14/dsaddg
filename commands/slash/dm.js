@@ -351,6 +351,8 @@ module.exports = {
 
         let failed = 0;
 
+        const failedUsers = [];
+
 
 
         // ----------------------
@@ -375,10 +377,14 @@ ${content}`
                 success++;
 
 
-            } catch(error) {
-
+            } catch (error) {
 
                 failed++;
+
+                failedUsers.push({
+                    id: user.id,
+                    username: user.username
+                });
 
             }
 
@@ -424,7 +430,9 @@ ${content}`
 
             successful: success,
 
-            failed: failed
+            failed: failed,
+
+            failedUsers: failedUsers
 
         });
 
@@ -464,44 +472,64 @@ ${content}`
             .setColor("#8B0000")
 
             .addFields(
+
                 {
                     name: "Sent by",
                     value: `${interaction.user} (${interaction.user.id})`,
                     inline: false
                 },
+
                 {
                     name: "Recipients",
                     value: recipientList.join("\n\n").substring(0, 1024),
                     inline: false
                 },
+
                 {
                     name: "Statistics",
                     value:
-        `Total: **${users.length}**
-        Successful: **${success}**
-        Failed: **${failed}**`,
+            `Total: **${users.length}**
+            Successful: **${success}**
+            Failed: **${failed}**`,
                     inline: false
                 },
+
+                ...(failedUsers.length > 0
+                    ? [{
+                        name: "❌ Failed Recipients",
+                        value:
+                            failedUsers
+                                .map(user =>
+                                    `• ${user.username} (${user.id})`
+                                )
+                                .join("\n")
+                                .substring(0, 1024),
+                        inline: false
+                    }]
+                    : []),
+
                 {
                     name: "Message",
                     value:
                         content.length > 1024
-                        ? content.substring(0, 1021) + "..."
-                        : content,
+                            ? content.substring(0, 1021) + "..."
+                            : content,
                     inline: false
                 },
+
                 {
                     name: "Global DM Cooldown",
                     value:
-        `Used: **${cooldown.uses}/2**
-        Remaining: **${remaining} use(s)**
+            `Used: **${cooldown.uses}/2**
+            Remaining: **${remaining} use(s)**
 
-        Reset:
-        <t:${Math.floor(
-        cooldown.resetAt.getTime() / 1000
-        )}:R>`,
+            Reset:
+            <t:${Math.floor(
+            cooldown.resetAt.getTime() / 1000
+            )}:R>`,
                     inline: false
                 }
+
             )
 
             .setFooter({

@@ -30,13 +30,20 @@ const DmLogSchema = new mongoose.Schema({
 
     failed: Number,
 
+    failedUsers: [
+        {
+            id: String,
+            username: String,
+            reason: String
+        }
+    ],
+
     createdAt: {
         type: Date,
         default: Date.now
     }
 
 });
-
 
 module.exports = mongoose.model(
     "DmLog",
