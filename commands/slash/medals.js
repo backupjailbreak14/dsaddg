@@ -128,7 +128,7 @@ module.exports = {
                         ? `<t:${Math.floor(
                             new Date(medal.awardedAt)
                             .getTime() / 1000
-                        )}:F>`
+                        )}:d>`
                         : "Unknown";
 
 
