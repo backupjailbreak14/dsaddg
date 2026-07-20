@@ -71,64 +71,96 @@ module.exports = {
 
         const pages = [];
 
-        let current = "";
+        const allMedals = [];
 
         for (const category of Object.keys(categories)) {
 
-            let section = `\n🏅 **${category.toUpperCase()}**\n\n`;
-
             for (const medal of categories[category]) {
+
+                allMedals.push({
+                    category,
+                    medal
+                });
+
+            }
+
+        }
+
+
+
+        for (
+            let i = 0;
+            i < allMedals.length;
+            i += 5
+        ) {
+
+
+            let section = "";
+
+
+            const pageMedals =
+                allMedals.slice(
+                    i,
+                    i + 5
+                );
+
+
+
+            for (const item of pageMedals) {
+
+
+                const medal =
+                    item.medal;
+
 
                 const emoji =
                     awardEmojis[medal.name] || "🏅";
+
 
                 const count =
                     medal.count > 1
                         ? ` x${medal.count}`
                         : "";
 
+
                 const awardedAt =
                     medal.awardedAt
-                        ? `<t:${Math.floor(new Date(medal.awardedAt).getTime() / 1000)}:F>`
+                        ? `<t:${Math.floor(
+                            new Date(medal.awardedAt)
+                            .getTime() / 1000
+                        )}:F>`
                         : "Unknown";
 
+
                 const reason =
-                    medal.reason && medal.reason.trim().length > 0
+                    medal.reason &&
+                    medal.reason.trim().length > 0
                         ? medal.reason.length > 500
-                            ? medal.reason.substring(0, 497) + "..."
+                            ? medal.reason.substring(0,497) + "..."
                             : medal.reason
                         : null;
 
 
+
                 section +=
-                `${emoji} **${medal.name}${count}**
+        `
+        ${emoji} **${medal.name}${count}**
 
-                **Awarded at**
-                ${awardedAt}
+        **Awarded at**
+        ${awardedAt}
 
-                ${reason ? `**Reason**
-                ${reason}
+        ${reason ? `**Reason**
+        ${reason}
 
-                ` : ""}
-                `;
-
-            }
-
-            if ((current + section).length > 3500) {
-
-                pages.push(current);
-                current = section;
-
-            } else {
-
-                current += section;
+        ` : ""}
+        `;
 
             }
 
-        }
 
-        if (current) {
-            pages.push(current);
+
+            pages.push(section);
+
         }
 
         let page = 0;
