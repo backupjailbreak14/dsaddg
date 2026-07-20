@@ -146,7 +146,7 @@ module.exports = {
         `
         ${emoji} **${medal.name}${count}**
 
-        **Awarded at**
+        **Awarded on**
         ${awardedAt}
 
         ${reason ? `**Reason**
